@@ -1,0 +1,2 @@
+-c https://dist.plone.org/release/6.0.9/constraints.txt
+python-keycloak == 3.12.0
