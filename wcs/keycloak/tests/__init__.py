@@ -19,8 +19,15 @@ class FunctionalTesting(TestCase):
         self.portal = self.layer['portal']
         self.request = self.layer['request']
 
-        self._create_plugin()
+        install_plugin()
         self.plugin = getattr(self.portal.acl_users, PLUGIN_ID)
+        self.plugin.manage_changeProperties(
+            server_url='http://localhost:8000',
+            client_id='user-management',
+            client_secret='baCXK7SftwANM8uU5kAP5HC6pkiWH0MJ',
+            realm_name='test'
+        )
+        transaction.commit()
 
     def tearDown(self):
         super().tearDown()
@@ -44,10 +51,6 @@ class FunctionalTesting(TestCase):
     def setup_realm(self, filename='test-realm.json'):
         self.layer['delete_realm']()
         self.layer['create_realm'](filename=filename)
-
-    def _create_plugin(self):
-        install_plugin()
-        transaction.commit()
 
     def _find_content(self, data, query, method='select_one'):
         soup = BeautifulSoup(data, 'html.parser')

@@ -37,15 +37,16 @@ class KeycloakPasPlugin(BasePlugin):
     meta_type = "Keycloak users/groups plugin"
     security = ClassSecurityInfo()
 
-    oidc_issuer = ""
+    server_url = ""
     client_id = ""
     client_secret = ""
+    realm_name = ""
 
     _properties = (
-        dict(id='oidc_issuer', label='OIDC Issuer', type='strin', mode='w'),
+        dict(id='server_url', label='Server URL', type='string', mode='w'),
         dict(id='client_id', label='Client ID', type='string', mode='w'),
         dict(id='client_secret', label='Client Secret', type='string', mode='w'),
-        
+        dict(id='realm_name', label='Realm Name', type='string', mode='w'),
     )
 
     def __init__(self, id_, title=None):
@@ -54,6 +55,11 @@ class KeycloakPasPlugin(BasePlugin):
 
     def enumerateGroups(self, id=None, exact_match=False, sort_by=None, max_results=None, **kw):
         """Enumerate groups
+        """
+        return []
+
+    def getGroupsForPrincipal(self, principal, request=None):
+        """Get groups for principal
         """
         return []
 
