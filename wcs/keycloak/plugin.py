@@ -1,12 +1,13 @@
 from AccessControl.class_init import InitializeClass
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
+from Products.PlonePAS.interfaces.group import IGroupIntrospection
+from Products.PluggableAuthService.interfaces.plugins import IGroupEnumerationPlugin
+from Products.PluggableAuthService.interfaces.plugins import IGroupsPlugin
+from Products.PluggableAuthService.interfaces.plugins import IUserEnumerationPlugin
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
-from Products.PluggableAuthService.interfaces.plugins import IGroupsPlugin
-from Products.PluggableAuthService.interfaces.plugins import IGroupEnumerationPlugin
-from Products.PluggableAuthService.interfaces.plugins import IUserEnumerationPlugin
-from Products.PlonePAS.interfaces.group import IGroupIntrospection
+from wcs.keycloak.client import KeycloakClient
 from zope.interface import Interface
 import logging
 
@@ -56,6 +57,8 @@ class KeycloakPasPlugin(BasePlugin):
     def enumerateGroups(self, id=None, exact_match=False, sort_by=None, max_results=None, **kw):
         """Enumerate groups
         """
+        admin = KeycloakClient(self).admin()
+        
         return []
 
     def getGroupsForPrincipal(self, principal, request=None):
