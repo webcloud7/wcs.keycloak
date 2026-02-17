@@ -9,6 +9,7 @@ Keycloak integration for Plone 6.
 - **User Creation**: Create users in Keycloak through Plone's registration workflow
 - **User Properties**: Retrieve user properties (email, fullname) from Keycloak
 - **Group Synchronization**: One-way sync of groups and memberships from Keycloak to Plone
+- **User Synchronization**: One-way sync of users from Keycloak to the plugin's local storage
 
 ## Installation
 
@@ -91,6 +92,12 @@ These options control behavior when users are created through Plone's registrati
 |----------|-------------|---------|
 | **Enable Keycloak Group Sync** | Sync groups on user login | `False` |
 
+### User Sync Options
+
+| Property | Description | Default |
+|----------|-------------|---------|
+| **Enable Keycloak User Sync** | Sync users to local storage | `False` |
+
 ### Activating Plugin Interfaces
 
 After adding the plugin, activate the required interfaces in ZMI under `acl_users/plugins/manage_main`:
@@ -166,6 +173,87 @@ curl -u admin:secret https://plone.example.com/@@sync-keycloak-groups
     }
 }
 ```
+
+When user sync is enabled (`Enable Keycloak User Sync` is `True`), the response includes additional statistics:
+
+```json
+{
+    "success": true,
+    "message": "Sync complete: 5 groups created, 0 updated, 0 deleted. 12 users added to groups, 0 removed. User sync: 50 synced, 2 removed.",
+    "stats": {
+        "groups_created": 5,
+        "groups_updated": 0,
+        "groups_deleted": 0,
+        "users_added": 12,
+        "users_removed": 0,
+        "users_synced": 50,
+        "users_sync_removed": 2,
+        "users_cleaned": 0,
+        "errors": 0
+    }
+}
+```
+
+## User Synchronization
+
+The user sync feature provides one-way synchronization of users from Keycloak to the plugin's local storage. This ensures that user properties (email, fullname) are available locally without querying Keycloak on every request.
+
+### How It Works
+
+1. All users from Keycloak are fetched and stored in the plugin's local storage
+2. User properties (email, first name, last name) are kept in sync
+3. Users deleted in Keycloak are removed from local storage
+
+### Dedicated User Sync Endpoint
+
+Trigger a standalone user sync by calling the user sync endpoint:
+
+**Python (requests)**:
+```python
+import requests
+
+response = requests.get(
+    'https://plone.example.com/@@sync-keycloak-users',
+    auth=('admin', 'secret')
+)
+result = response.json()
+print(result['message'])
+# User sync complete: 50 users synced, 2 removed.
+```
+
+**JavaScript (fetch)**:
+```javascript
+const response = await fetch('https://plone.example.com/@@sync-keycloak-users', {
+    headers: {
+        'Authorization': 'Basic ' + btoa('admin:secret')
+    }
+});
+const result = await response.json();
+console.log(result.message);
+```
+
+**curl (cron job)**:
+```bash
+curl -u admin:secret https://plone.example.com/@@sync-keycloak-users
+```
+
+### User Sync Response Format
+
+```json
+{
+    "success": true,
+    "message": "User sync complete: 50 users synced, 2 removed.",
+    "stats": {
+        "users_synced": 50,
+        "users_removed": 2,
+        "errors": 0
+    }
+}
+```
+
+### Combined Sync
+
+When user sync is enabled, calling `@@sync-keycloak-groups` also triggers a full user sync automatically. This allows a single cron job to keep both groups and users in sync.
 
 ## Usage Examples
 
