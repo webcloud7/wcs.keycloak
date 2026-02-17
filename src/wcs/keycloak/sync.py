@@ -16,22 +16,15 @@ Sync Operations:
       Keycloak groups
     - sync_all_memberships(): Updates membership of all synced groups
     - sync_user_memberships(): Updates a single user's group memberships
-    - sync_groups_and_memberships(): Full sync including user cleanup
+    - sync_groups_and_memberships(): Sync groups and memberships only
+    - sync_all(): Full sync of groups, memberships, users, and cleanup
 
 Triggers:
     - Automatic: on_user_logged_in event handler (when sync_groups enabled)
-    - Manual: @@sync-keycloak-groups browser view
+    - Manual: @@sync-keycloak-groups, @@sync-keycloak-users, @@sync-keycloak
 
 Constants:
     KEYCLOAK_GROUP_PREFIX: Prefix added to Keycloak group names ('keycloak_')
-
-Example:
-    Sync groups manually::
-
-        from wcs.keycloak.sync import sync_groups_and_memberships
-
-        stats = sync_groups_and_memberships()
-        print(f"Created {stats['groups_created']} groups")
 
 Note:
     The sync is one-way only. Changes to synced groups in Plone will be
@@ -352,41 +345,54 @@ def sync_user_memberships(username):
 
 
 def sync_groups_and_memberships():
-    """Perform a full sync of groups and all memberships.
+    """Perform a sync of groups, memberships, and stale user cleanup.
 
-    This is the main entry point for the sync view. It:
+    This is the entry point for the @@sync-keycloak-groups view. It:
     1. Syncs all groups from Keycloak (create/update/delete)
     2. Syncs all memberships for all groups
-    3. Either runs full user sync (when sync_users enabled) or just cleans up
-       deleted users from local storage
+    3. Cleans up users from local storage that no longer exist in Keycloak
 
     Returns:
         Dict with combined statistics from all operations.
     """
     group_stats = sync_all_groups()
     membership_stats = sync_all_memberships()
+    cleanup_stats = cleanup_deleted_users()
 
-    result = {
+    return {
         'groups_created': group_stats['created'],
         'groups_updated': group_stats['updated'],
         'groups_deleted': group_stats['deleted'],
         'users_added': membership_stats['users_added'],
         'users_removed': membership_stats['users_removed'],
-        'errors': group_stats['errors'] + membership_stats['errors'],
+        'users_cleaned': cleanup_stats['users_cleaned'],
+        'errors': (
+            group_stats['errors']
+            + membership_stats['errors']
+            + cleanup_stats['errors']
+        ),
     }
 
+
+def sync_all():
+    """Perform a full sync of groups, memberships, and users.
+
+    This is the entry point for the @@sync-keycloak view. It:
+    1. Syncs all groups from Keycloak (create/update/delete)
+    2. Syncs all memberships for all groups
+    3. Cleans up stale users from local storage
+    4. Runs full user sync when sync_users is enabled
+
+    Returns:
+        Dict with combined statistics from all operations.
+    """
+    result = sync_groups_and_memberships()
+
     if is_user_sync_enabled():
-        # Full user sync already includes stale user removal
         user_sync_stats = sync_all_users()
         result['users_synced'] = user_sync_stats['users_synced']
         result['users_sync_removed'] = user_sync_stats['users_removed']
-        result['users_cleaned'] = 0
         result['errors'] += user_sync_stats['errors']
-    else:
-        # Only clean up deleted users from storage
-        cleanup_stats = cleanup_deleted_users()
-        result['users_cleaned'] = cleanup_stats['users_cleaned']
-        result['errors'] += cleanup_stats['errors']
 
     return result
 

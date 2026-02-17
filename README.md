@@ -123,40 +123,16 @@ When `Enable Keycloak Group Sync` is enabled:
 - All groups are synced when any user logs in
 - The logged-in user's group memberships are updated
 
-### Manual/Scheduled Sync
+### Manual/Scheduled Group Sync
 
-Trigger a full sync by calling the sync endpoint:
-
-**Python (requests)**:
-```python
-import requests
-
-response = requests.get(
-    'https://plone.example.com/@@sync-keycloak-groups',
-    auth=('admin', 'secret')
-)
-result = response.json()
-print(result['message'])
-# Sync complete: 5 groups created, 0 updated, 0 deleted. 12 users added to groups, 0 removed.
-```
-
-**JavaScript (fetch)**:
-```javascript
-const response = await fetch('https://plone.example.com/@@sync-keycloak-groups', {
-    headers: {
-        'Authorization': 'Basic ' + btoa('admin:secret')
-    }
-});
-const result = await response.json();
-console.log(result.message);
-```
+Trigger a group-only sync by calling the group sync endpoint:
 
 **curl (cron job)**:
 ```bash
 curl -u admin:secret https://plone.example.com/@@sync-keycloak-groups
 ```
 
-### Sync Response Format
+### Group Sync Response Format
 
 ```json
 {
@@ -168,27 +144,6 @@ curl -u admin:secret https://plone.example.com/@@sync-keycloak-groups
         "groups_deleted": 0,
         "users_added": 12,
         "users_removed": 0,
-        "users_cleaned": 0,
-        "errors": 0
-    }
-}
-```
-
-When user sync is enabled (`Enable Keycloak User Sync` is `True`), the response includes additional statistics:
-
-```json
-{
-    "success": true,
-    "message": "Sync complete: 5 groups created, 0 updated, 0 deleted. 12 users added to groups, 0 removed. User sync: 50 synced, 2 removed.",
-    "stats": {
-        "groups_created": 5,
-        "groups_updated": 0,
-        "groups_deleted": 0,
-        "users_added": 12,
-        "users_removed": 0,
-        "users_synced": 50,
-        "users_sync_removed": 2,
-        "users_cleaned": 0,
         "errors": 0
     }
 }
@@ -207,30 +162,6 @@ The user sync feature provides one-way synchronization of users from Keycloak to
 ### Dedicated User Sync Endpoint
 
 Trigger a standalone user sync by calling the user sync endpoint:
-
-**Python (requests)**:
-```python
-import requests
-
-response = requests.get(
-    'https://plone.example.com/@@sync-keycloak-users',
-    auth=('admin', 'secret')
-)
-result = response.json()
-print(result['message'])
-# User sync complete: 50 users synced, 2 removed.
-```
-
-**JavaScript (fetch)**:
-```javascript
-const response = await fetch('https://plone.example.com/@@sync-keycloak-users', {
-    headers: {
-        'Authorization': 'Basic ' + btoa('admin:secret')
-    }
-});
-const result = await response.json();
-console.log(result.message);
-```
 
 **curl (cron job)**:
 ```bash
@@ -251,9 +182,62 @@ curl -u admin:secret https://plone.example.com/@@sync-keycloak-users
 }
 ```
 
-### Combined Sync
+## Full Synchronization
 
-When user sync is enabled, calling `@@sync-keycloak-groups` also triggers a full user sync automatically. This allows a single cron job to keep both groups and users in sync.
+The `@@sync-keycloak` view performs a complete synchronization of all Keycloak data to Plone. It combines group sync, membership sync, user sync (when enabled), and cleanup of deleted users into a single operation.
+
+This is the recommended endpoint for cron jobs that need to keep everything in sync.
+
+**curl (cron job)**:
+```bash
+curl -u admin:secret https://plone.example.com/@@sync-keycloak
+```
+
+### Full Sync Response Format
+
+When user sync is enabled:
+
+```json
+{
+    "success": true,
+    "message": "Sync complete: 5 groups created, 0 updated, 0 deleted. 12 users added to groups, 0 removed. User sync: 50 synced, 2 removed.",
+    "stats": {
+        "groups_created": 5,
+        "groups_updated": 0,
+        "groups_deleted": 0,
+        "users_added": 12,
+        "users_removed": 0,
+        "users_synced": 50,
+        "users_sync_removed": 2,
+        "users_cleaned": 0,
+        "errors": 0
+    }
+}
+```
+
+When user sync is disabled, the response includes cleanup stats instead:
+
+```json
+{
+    "stats": {
+        "groups_created": 5,
+        "groups_updated": 0,
+        "groups_deleted": 0,
+        "users_added": 12,
+        "users_removed": 0,
+        "users_cleaned": 0,
+        "errors": 0
+    }
+}
+```
+
+### Sync Endpoints Overview
+
+| Endpoint | Scope | Use Case |
+|----------|-------|----------|
+| `@@sync-keycloak` | Groups + memberships + users + cleanup | Recommended for cron jobs |
+| `@@sync-keycloak-groups` | Groups + memberships only | When you only need group data |
+| `@@sync-keycloak-users` | Users only | When you only need user data |
 
 ## Usage Examples
 

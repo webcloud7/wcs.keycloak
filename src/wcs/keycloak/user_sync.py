@@ -10,7 +10,7 @@ Sync Operations:
 
 Triggers:
     - Manual: @@sync-keycloak-users browser view
-    - Combined: Also triggered by @@sync-keycloak-groups when sync_users is enabled
+    - Combined: Also triggered by @@sync-keycloak when sync_users is enabled
 """
 from wcs.keycloak.client import get_keycloak_client
 from wcs.keycloak.client import get_keycloak_plugin

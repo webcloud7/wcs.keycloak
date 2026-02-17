@@ -4,6 +4,13 @@
     i18n_domain="wcs.keycloak">
 
     <browser:page
+        name="sync-keycloak"
+        for="plone.base.interfaces.IPloneSiteRoot"
+        class=".sync_keycloak.SyncKeycloakView"
+        permission="cmf.ManagePortal"
+        />
+
+    <browser:page
         name="sync-keycloak-groups"
         for="plone.base.interfaces.IPloneSiteRoot"
         class=".sync_keycloak_groups.SyncKeycloakGroupsView"

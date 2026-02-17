@@ -229,9 +229,9 @@ class TestSyncKeycloakUsersView(UserSyncTestBase):
         )
 
 
-class TestGroupSyncViewIncludesUserSync(UserSyncTestBase):
+class TestGroupSyncViewIsGroupOnly(UserSyncTestBase):
 
-    def test_group_sync_view_includes_user_sync_stats_when_enabled(self):
+    def test_group_sync_view_excludes_user_sync_stats(self):
         plugin = api.portal.get_tool('acl_users')['keycloak']
         plugin.sync_groups = True
         plugin.sync_users = True
@@ -246,15 +246,14 @@ class TestGroupSyncViewIncludesUserSync(UserSyncTestBase):
 
         data = response.json()
         self.assertTrue(data['success'])
-        self.assertIn(
+        self.assertNotIn(
             'users_synced', data['stats'],
-            'Group sync response should include user sync stats when enabled',
+            'Group sync view should not include user sync stats',
         )
 
-    def test_group_sync_view_excludes_user_sync_stats_when_disabled(self):
+    def test_group_sync_view_includes_cleanup_stats(self):
         plugin = api.portal.get_tool('acl_users')['keycloak']
         plugin.sync_groups = True
-        plugin.sync_users = False
         transaction.commit()
 
         response = requests.get(
@@ -266,7 +265,83 @@ class TestGroupSyncViewIncludesUserSync(UserSyncTestBase):
 
         data = response.json()
         self.assertTrue(data['success'])
+        self.assertIn(
+            'users_cleaned', data['stats'],
+            'Group sync view should include stale user cleanup stats',
+        )
+
+
+class TestSyncKeycloakView(UserSyncTestBase):
+
+    def test_sync_all_view_returns_error_when_not_enabled(self):
+        response = requests.get(
+            f'{self.portal_url}/@@sync-keycloak',
+            auth=self.credentials,
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+        data = response.json()
+        self.assertFalse(data['success'])
+
+    def test_sync_all_view_returns_json(self):
+        plugin = api.portal.get_tool('acl_users')['keycloak']
+        plugin.sync_groups = True
+        transaction.commit()
+
+        response = requests.get(
+            f'{self.portal_url}/@@sync-keycloak',
+            auth=self.credentials,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+        self.assertTrue(data['success'], 'Sync should succeed')
+        self.assertIn('stats', data)
+        self.assertIn('groups_created', data['stats'])
+        self.assertIn('users_added', data['stats'])
+
+    def test_sync_all_view_includes_user_sync_stats_when_enabled(self):
+        plugin = api.portal.get_tool('acl_users')['keycloak']
+        plugin.sync_groups = True
+        plugin.sync_users = True
+        transaction.commit()
+
+        response = requests.get(
+            f'{self.portal_url}/@@sync-keycloak',
+            auth=self.credentials,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertIn(
+            'users_synced', data['stats'],
+            'Sync-all response should include user sync stats when enabled',
+        )
+
+    def test_sync_all_view_excludes_user_sync_stats_when_disabled(self):
+        plugin = api.portal.get_tool('acl_users')['keycloak']
+        plugin.sync_groups = True
+        plugin.sync_users = False
+        transaction.commit()
+
+        response = requests.get(
+            f'{self.portal_url}/@@sync-keycloak',
+            auth=self.credentials,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+        self.assertTrue(data['success'])
         self.assertNotIn(
             'users_synced', data['stats'],
-            'Group sync response should not include user sync stats when disabled',
+            'Sync-all response should not include user sync stats when disabled',
+        )
+        self.assertIn(
+            'users_cleaned', data['stats'],
+            'Sync-all response should always include cleanup stats',
         )
