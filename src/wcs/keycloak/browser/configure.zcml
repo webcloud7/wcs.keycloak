@@ -1,0 +1,20 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="wcs.keycloak">
+
+    <browser:page
+        name="sync-keycloak-groups"
+        for="plone.base.interfaces.IPloneSiteRoot"
+        class=".sync_keycloak_groups.SyncKeycloakGroupsView"
+        permission="cmf.ManagePortal"
+        />
+
+    <browser:page
+        name="sync-keycloak-users"
+        for="plone.base.interfaces.IPloneSiteRoot"
+        class=".sync_keycloak_users.SyncKeycloakUsersView"
+        permission="cmf.ManagePortal"
+        />
+
+</configure>

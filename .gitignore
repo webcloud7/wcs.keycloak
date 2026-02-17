@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.mo
+*.egg-info/
+
+# Virtual environment
+bin/
+lib/
+include/
+pyvenv.cfg
+
+# Build / install artifacts
+.installed.txt
+constraints-mxdev.txt
+requirements-mxdev.txt
+.make-sentinels/
+
+# Plone instance
+instance/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

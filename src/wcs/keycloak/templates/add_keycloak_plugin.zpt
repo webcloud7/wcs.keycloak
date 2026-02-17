@@ -1,0 +1,140 @@
+<h1 tal:replace="structure here/manage_page_header">Header</h1>
+
+<h2>Add Keycloak plugin</h2>
+
+<p class="form-help">
+  wcs.keycloak - Keycloak integration for Plone
+</p>
+
+<form action="manage_addKeycloakPlugin"
+      enctype="multipart/form-data"
+      method="post"
+>
+  <table border="0"
+         cellpadding="2"
+         cellspacing="0"
+  >
+    <tr>
+      <td align="left"
+          valign="top"
+      >
+        <div class="form-label">
+          Id
+        </div>
+      </td>
+      <td align="left"
+          valign="top"
+      >
+        <input name="id_"
+               size="40"
+               type="text"
+        />
+      </td>
+    </tr>
+    <tr>
+      <td align="left"
+          valign="top"
+      >
+        <div class="form-optional">
+          Title
+        </div>
+      </td>
+      <td align="left"
+          valign="top"
+      >
+        <input name="title"
+               size="40"
+               type="text"
+        />
+      </td>
+    </tr>
+    <tr>
+      <td align="left"
+          valign="top"
+      >
+        <div class="form-label">
+          Server URL
+        </div>
+      </td>
+      <td align="left"
+          valign="top"
+      >
+        <input name="server_url"
+               size="40"
+               type="text"
+               placeholder="https://keycloak.example.com"
+        />
+      </td>
+    </tr>
+    <tr>
+      <td align="left"
+          valign="top"
+      >
+        <div class="form-label">
+          Realm
+        </div>
+      </td>
+      <td align="left"
+          valign="top"
+      >
+        <input name="realm"
+               size="40"
+               type="text"
+        />
+      </td>
+    </tr>
+    <tr>
+      <td align="left"
+          valign="top"
+      >
+        <div class="form-label">
+          Admin Client ID
+        </div>
+      </td>
+      <td align="left"
+          valign="top"
+      >
+        <input name="admin_client_id"
+               size="40"
+               type="text"
+        />
+      </td>
+    </tr>
+    <tr>
+      <td align="left"
+          valign="top"
+      >
+        <div class="form-label">
+          Admin Client Secret
+        </div>
+      </td>
+      <td align="left"
+          valign="top"
+      >
+        <input name="admin_client_secret"
+               size="40"
+               type="password"
+        />
+      </td>
+    </tr>
+    <tr>
+      <td align="left"
+          valign="top"
+      >
+      </td>
+      <td align="left"
+          valign="top"
+      >
+        <div class="form-element">
+          <input class="form-element"
+                 name="submit"
+                 type="submit"
+                 value=" Add "
+          />
+        </div>
+      </td>
+    </tr>
+  </table>
+</form>
+
+<h1 tal:replace="structure here/manage_page_footer">Footer</h1>
