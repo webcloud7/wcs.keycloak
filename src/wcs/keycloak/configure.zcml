@@ -11,7 +11,7 @@
     <include package=".browser" />
 
     <subscriber
-        handler=".group_sync.on_user_logged_in"
+        handler=".sync.on_user_logged_in"
         for="Products.PluggableAuthService.interfaces.events.IUserLoggedInEvent"
         />
 

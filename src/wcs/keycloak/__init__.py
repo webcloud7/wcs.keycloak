@@ -24,7 +24,7 @@ Architecture:
 Modules:
     - plugin: KeycloakPlugin PAS plugin implementation
     - client: KeycloakAdminClient REST API client
-    - group_sync: Group and membership synchronization logic
+    - sync: Group, membership, and user synchronization logic
     - interfaces: Zope interface definitions
     - browser: Browser views for admin operations
 

@@ -1,7 +1,7 @@
-"""Keycloak group synchronization to Plone groups.
+"""Keycloak synchronization to Plone.
 
-This module provides functions to sync Keycloak groups to native Plone groups.
-Keycloak is the single source of truth - groups are synced one-way from
+This module provides functions to sync Keycloak groups, memberships, and users
+to Plone. Keycloak is the single source of truth - data is synced one-way from
 Keycloak to Plone.
 
 Sync Strategy:
@@ -28,7 +28,7 @@ Constants:
 Example:
     Sync groups manually::
 
-        from wcs.keycloak.group_sync import sync_groups_and_memberships
+        from wcs.keycloak.sync import sync_groups_and_memberships
 
         stats = sync_groups_and_memberships()
         print(f"Created {stats['groups_created']} groups")
@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 KEYCLOAK_GROUP_PREFIX = 'keycloak_'
 
 
-def is_keycloak_sync_enabled():
+def is_group_sync_enabled():
     """Check if Keycloak group sync is enabled.
 
     Returns:
@@ -400,7 +400,7 @@ def on_user_logged_in(event):
     Args:
         event: The IUserLoggedInEvent containing the logged-in user.
     """
-    if not is_keycloak_sync_enabled():
+    if not is_group_sync_enabled():
         return
 
     username = event.object.getId()

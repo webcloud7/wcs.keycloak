@@ -1,8 +1,8 @@
 """Browser view for Keycloak group synchronization."""
 from plone.protect.interfaces import IDisableCSRFProtection
 from Products.Five.browser import BrowserView
-from wcs.keycloak.group_sync import is_keycloak_sync_enabled
-from wcs.keycloak.group_sync import sync_groups_and_memberships
+from wcs.keycloak.sync import is_group_sync_enabled
+from wcs.keycloak.sync import sync_groups_and_memberships
 from zope.interface import alsoProvides
 import json
 
@@ -31,7 +31,7 @@ class SyncKeycloakGroupsView(BrowserView):
 
         self.request.response.setHeader('Content-Type', 'application/json')
 
-        if not is_keycloak_sync_enabled():
+        if not is_group_sync_enabled():
             self.request.response.setStatus(400)
             return json.dumps({
                 'success': False,
