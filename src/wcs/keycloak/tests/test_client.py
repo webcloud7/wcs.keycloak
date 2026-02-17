@@ -8,8 +8,6 @@ This module contains tests for the core Keycloak client functionality:
 - URL construction
 - Error handling
 """
-import requests
-import transaction
 from plone import api
 from wcs.keycloak.client import get_keycloak_client
 from wcs.keycloak.client import KeycloakAdminClient
@@ -22,6 +20,8 @@ from wcs.keycloak.testing.mixins import KEYCLOAK_REALM
 from wcs.keycloak.testing.mixins import KEYCLOAK_SERVER_URL
 from wcs.keycloak.testing.mixins import KeycloakTestMixin
 from wcs.keycloak.tests import FunctionalTesting
+import requests
+import transaction
 
 
 class TestKeycloakAdminClient(KeycloakTestMixin, FunctionalTesting):

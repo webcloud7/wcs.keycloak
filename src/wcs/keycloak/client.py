@@ -79,9 +79,9 @@ Constants:
     DEFAULT_EMAIL_LINK_LIFESPAN: Default validity period for email links
         (86400 seconds = 24 hours)
 """
+from plone import api
 import logging
 import requests
-from plone import api
 
 
 logger = logging.getLogger(__name__)

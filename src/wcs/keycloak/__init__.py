@@ -39,11 +39,9 @@ See Also:
 from AccessControl.Permissions import manage_users
 from Products.PluggableAuthService.PluggableAuthService import registerMultiPlugin
 from zope.i18nmessageid import MessageFactory
-import logging
 
 
 _ = MessageFactory("wcs.keycloak")
-logger = logging.getLogger("wcs.keycloak")
 
 
 def initialize(context):

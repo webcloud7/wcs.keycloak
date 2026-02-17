@@ -30,6 +30,28 @@ def is_user_sync_enabled():
     return is_sync_enabled('sync_users')
 
 
+def _get_client_and_plugin(operation_name):
+    """Get the Keycloak client and plugin, logging warnings if unavailable.
+
+    Args:
+        operation_name: Name of the operation (for log messages).
+
+    Returns:
+        Tuple of (client, plugin) or (None, None) if either is unavailable.
+    """
+    client = get_keycloak_client()
+    if not client:
+        logger.warning(f"Keycloak client not configured, skipping {operation_name}")
+        return None, None
+
+    plugin = get_keycloak_plugin()
+    if not plugin:
+        logger.warning(f"KeycloakPlugin not found, skipping {operation_name}")
+        return None, None
+
+    return client, plugin
+
+
 def _remove_stale_users(user_storage, keycloak_usernames):
     """Remove users from storage that no longer exist in Keycloak.
 
@@ -69,14 +91,8 @@ def cleanup_deleted_users():
     """
     stats = {'users_cleaned': 0, 'errors': 0}
 
-    client = get_keycloak_client()
+    client, plugin = _get_client_and_plugin('user cleanup')
     if not client:
-        logger.warning("Keycloak client not configured, skipping user cleanup")
-        return stats
-
-    plugin = get_keycloak_plugin()
-    if not plugin:
-        logger.warning("KeycloakPlugin not found, skipping user cleanup")
         return stats
 
     try:
@@ -114,14 +130,8 @@ def sync_all_users():
     """
     stats = {'users_synced': 0, 'users_removed': 0, 'errors': 0}
 
-    client = get_keycloak_client()
+    client, plugin = _get_client_and_plugin('user sync')
     if not client:
-        logger.warning("Keycloak client not configured, skipping user sync")
-        return stats
-
-    plugin = get_keycloak_plugin()
-    if not plugin:
-        logger.warning("KeycloakPlugin not found, skipping user sync")
         return stats
 
     try:

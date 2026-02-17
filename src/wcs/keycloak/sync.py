@@ -32,7 +32,6 @@ Note:
     in Keycloak.
 """
 from plone import api
-from Products.CMFCore.utils import getToolByName
 from wcs.keycloak.client import get_keycloak_client
 from wcs.keycloak.client import is_sync_enabled
 from wcs.keycloak.user_sync import cleanup_deleted_users
@@ -120,7 +119,7 @@ def sync_all_groups():
         logger.info(f"Found {len(keycloak_group_names)} groups in Keycloak")
 
         # Get all existing synced Plone groups
-        portal_groups = getToolByName(api.portal.get(), 'portal_groups')
+        portal_groups = api.portal.get_tool('portal_groups')
         existing_plone_groups = portal_groups.listGroupIds()
         synced_plone_groups = {
             gid for gid in existing_plone_groups if is_synced_group(gid)
@@ -297,7 +296,7 @@ def sync_user_memberships(username):
         expected_plone_groups = {get_plone_group_id(name) for name in kc_group_names}
 
         # Get current Plone group memberships (only synced groups)
-        portal_groups = getToolByName(api.portal.get(), 'portal_groups')
+        portal_groups = api.portal.get_tool('portal_groups')
         all_groups = portal_groups.listGroupIds()
         current_synced_memberships = set()
 
