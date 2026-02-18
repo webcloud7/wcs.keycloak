@@ -2,6 +2,10 @@
 
 Keycloak integration for Plone 6.
 
+This plugin works best in combination with [pas.plugins.oidc](https://github.com/collective/pas.plugins.oidc) for OpenID Connect authentication. When using both packages together, make sure to **disable user creation in pas.plugins.oidc** (`create_user = False`) since `wcs.keycloak` provides its own `IUserAdderPlugin` that handles user creation in Keycloak. Having both plugins create users will lead to conflicts.
+
+**Performance note on IUserEnumerationPlugin**: The user enumeration plugin checks its local cache first and falls back to a Keycloak API call for every cache miss. Since `getMemberById` is called frequently throughout Plone (e.g. content listings, permission checks), this adds significant overhead when multiple user sources are active. Only activate `IUserEnumerationPlugin` if Keycloak is the sole user source.
+
 ## Features
 
 - **PAS Plugin**: Pluggable Authentication Service plugin for Keycloak integration
@@ -180,13 +184,14 @@ curl -u admin:secret https://plone.example.com/@@sync-keycloak-groups
 ```json
 {
     "success": true,
-    "message": "Sync complete: 5 groups created, 0 updated, 0 deleted. 12 users added to groups, 0 removed.",
+    "message": "Sync complete: 5 groups created, 0 updated, 0 deleted. 12 users added to groups, 0 removed. 0 stale users cleaned up.",
     "stats": {
         "groups_created": 5,
         "groups_updated": 0,
         "groups_deleted": 0,
         "users_added": 12,
         "users_removed": 0,
+        "users_cleaned": 0,
         "errors": 0
     }
 }
@@ -262,6 +267,8 @@ When user sync is disabled, the response includes cleanup stats instead:
 
 ```json
 {
+    "success": true,
+    "message": "Sync complete: 5 groups created, 0 updated, 0 deleted. 12 users added to groups, 0 removed.",
     "stats": {
         "groups_created": 5,
         "groups_updated": 0,
@@ -279,7 +286,7 @@ When user sync is disabled, the response includes cleanup stats instead:
 | Endpoint | Scope | Use Case |
 |----------|-------|----------|
 | `@@sync-keycloak` | Groups + memberships + users + cleanup | Recommended for cron jobs |
-| `@@sync-keycloak-groups` | Groups + memberships only | When you only need group data |
+| `@@sync-keycloak-groups` | Groups + memberships + stale user cleanup | When you only need group data |
 | `@@sync-keycloak-users` | Users only | When you only need user data |
 
 ## Usage Examples
@@ -378,14 +385,6 @@ Or run specific tests:
 bin/test -s wcs.keycloak -t test_enumeration
 bin/test -s wcs.keycloak -t TestKeycloakEnumerateUsers
 ```
-
-### Test Infrastructure
-
-The testing module provides:
-
-- `KeyCloakLayer`: Test layer that starts a Keycloak Docker container
-- `KeycloakTestMixin`: Mixin with utilities for Keycloak admin operations
-- `KeycloakPluginTestMixin`: Extended mixin for plugin integration tests
 
 ## Development
 
