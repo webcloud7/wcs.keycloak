@@ -1,5 +1,4 @@
 """Test infrastructure for wcs.keycloak."""
-from copy import deepcopy
 from plone.app.testing import FunctionalTesting as PloneFunctionalTesting
 from plone.app.testing import PLONE_FIXTURE
 from plone.app.testing import PloneSandboxLayer
@@ -74,7 +73,7 @@ class FunctionalTesting(TestCase):
         Returns:
             Dict with Accept header set to application/json.
         """
-        return deepcopy({'Accept': 'application/json'})
+        return {'Accept': 'application/json'}
 
     @property
     def api_post_headers(self):
@@ -83,10 +82,10 @@ class FunctionalTesting(TestCase):
         Returns:
             Dict with Accept and Content-Type headers set to application/json.
         """
-        return deepcopy({
+        return {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-        })
+        }
 
     @property
     def portal_url(self):

@@ -29,14 +29,14 @@ class TestKeycloakPlugin(FunctionalTesting):
     def test_plugin_implements_user_adder_interface(self):
         plugin = KeycloakPlugin('test', 'Test')
 
-        self.assertTrue(IUserAdderPlugin.providedBy(plugin))
+        self.assertTrue(IUserAdderPlugin.providedBy(plugin), 'Plugin should provide IUserAdderPlugin')
 
     def test_plugin_default_properties(self):
         plugin = KeycloakPlugin('test', 'Test')
 
-        self.assertTrue(plugin.send_password_reset)
-        self.assertTrue(plugin.send_verify_email)
-        self.assertFalse(plugin.require_totp)
+        self.assertTrue(plugin.send_password_reset, 'send_password_reset should default to True')
+        self.assertTrue(plugin.send_verify_email, 'send_verify_email should default to True')
+        self.assertFalse(plugin.require_totp, 'require_totp should default to False')
         self.assertEqual(plugin.email_link_lifespan, 86400)
 
 
@@ -69,7 +69,7 @@ class TestKeycloakPluginStorage(FunctionalTesting):
 
         result = plugin.updateUser('user_id', 'login_name')
 
-        self.assertTrue(result)
+        self.assertTrue(result, 'updateUser should return True')
 
     def test_plugin_implements_properties_plugin_interface(self):
-        self.assertTrue(IPropertiesPlugin.implementedBy(KeycloakPlugin))
+        self.assertTrue(IPropertiesPlugin.implementedBy(KeycloakPlugin), 'KeycloakPlugin should implement IPropertiesPlugin')

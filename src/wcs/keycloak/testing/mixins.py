@@ -38,8 +38,8 @@ class KeycloakTestMixin:
         _created_groups: List of group IDs created during tests.
     """
 
-    _created_users = []
-    _created_groups = []
+    _created_users = None
+    _created_groups = None
 
     def _create_admin_client(self):
         """Create a KeycloakAdminClient configured for testing.

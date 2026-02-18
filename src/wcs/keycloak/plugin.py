@@ -29,6 +29,22 @@ logger = logging.getLogger(__name__)
 DEFAULT_MAX_USERS = 1000
 
 
+def extract_user_storage_data(keycloak_user):
+    """Build a user storage dict from a Keycloak user response.
+
+    Args:
+        keycloak_user: Dict from Keycloak API with user data.
+
+    Returns:
+        Dict with email, firstName, lastName for plugin storage.
+    """
+    return {
+        'email': keycloak_user.get('email', ''),
+        'firstName': keycloak_user.get('firstName', ''),
+        'lastName': keycloak_user.get('lastName', ''),
+    }
+
+
 manage_addKeycloakPluginForm = PageTemplateFile("templates/add_keycloak_plugin", globals())
 
 
@@ -539,11 +555,7 @@ class KeycloakPlugin(BasePlugin):
                         continue
 
                 # Store user data for property lookups (persistent)
-                storage[username] = {
-                    'email': user.get('email', ''),
-                    'firstName': user.get('firstName', ''),
-                    'lastName': user.get('lastName', ''),
-                }
+                storage[username] = extract_user_storage_data(user)
 
                 result.append({
                     'id': username,
@@ -599,11 +611,7 @@ class KeycloakPlugin(BasePlugin):
 
             keycloak_user = client.get_user(principal_id)
             if keycloak_user:
-                user_data = {
-                    'email': keycloak_user.get('email', ''),
-                    'firstName': keycloak_user.get('firstName', ''),
-                    'lastName': keycloak_user.get('lastName', ''),
-                }
+                user_data = extract_user_storage_data(keycloak_user)
                 user_storage[principal_id] = user_data
             else:
                 return {}

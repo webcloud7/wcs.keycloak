@@ -32,7 +32,7 @@ Note:
     in Keycloak.
 """
 from plone import api
-from wcs.keycloak.client import get_keycloak_plugin
+from wcs.keycloak.client import get_client_and_plugin
 from wcs.keycloak.client import is_sync_enabled
 from wcs.keycloak.user_sync import cleanup_deleted_users
 from wcs.keycloak.user_sync import is_user_sync_enabled
@@ -44,6 +44,10 @@ logger = logging.getLogger(__name__)
 
 # Prefix for synced groups to identify them as Keycloak-managed
 KEYCLOAK_GROUP_PREFIX = 'keycloak_'
+
+# Maximum results to fetch from Keycloak during group/membership sync
+MAX_SYNC_GROUPS = 1000
+MAX_SYNC_GROUP_MEMBERS = 1000
 
 
 def is_group_sync_enabled():
@@ -106,19 +110,13 @@ def sync_all_groups():
     """
     stats = {'created': 0, 'updated': 0, 'deleted': 0, 'errors': 0}
 
-    plugin = get_keycloak_plugin()
-    if not plugin:
-        logger.warning("KeycloakPlugin not found, skipping group sync")
-        return stats
-
-    client = plugin.get_client()
+    client, plugin = get_client_and_plugin('group sync')
     if not client:
-        logger.warning("Keycloak client not configured, skipping group sync")
         return stats
 
     try:
         # Fetch all groups from Keycloak
-        keycloak_groups = client.search_groups(max_results=1000)
+        keycloak_groups = client.search_groups(max_results=MAX_SYNC_GROUPS)
         keycloak_group_names = {g['name'] for g in keycloak_groups if g.get('name')}
 
         logger.info(f"Found {len(keycloak_group_names)} groups in Keycloak")
@@ -200,19 +198,13 @@ def sync_all_memberships():
     """
     stats = {'users_added': 0, 'users_removed': 0, 'errors': 0}
 
-    plugin = get_keycloak_plugin()
-    if not plugin:
-        logger.warning("KeycloakPlugin not found, skipping membership sync")
-        return stats
-
-    client = plugin.get_client()
+    client, plugin = get_client_and_plugin('membership sync')
     if not client:
-        logger.warning("Keycloak client not configured, skipping membership sync")
         return stats
 
     try:
         # Get all Keycloak groups
-        keycloak_groups = client.search_groups(max_results=1000)
+        keycloak_groups = client.search_groups(max_results=MAX_SYNC_GROUPS)
 
         for kc_group in keycloak_groups:
             group_name = kc_group.get('name')
@@ -229,7 +221,7 @@ def sync_all_memberships():
 
             try:
                 # Get members from Keycloak
-                kc_members = client.get_group_members(group_uuid, max_results=1000)
+                kc_members = client.get_group_members(group_uuid, max_results=MAX_SYNC_GROUP_MEMBERS)
                 kc_usernames = {
                     m.get('username') for m in kc_members if m.get('username')
                 }
@@ -288,14 +280,8 @@ def sync_user_memberships(username):
     """
     stats = {'groups_added': 0, 'groups_removed': 0, 'errors': 0}
 
-    plugin = get_keycloak_plugin()
-    if not plugin:
-        logger.warning("KeycloakPlugin not found, skipping user membership sync")
-        return stats
-
-    client = plugin.get_client()
+    client, plugin = get_client_and_plugin('user membership sync')
     if not client:
-        logger.warning("Keycloak client not configured, skipping user membership sync")
         return stats
 
     try:

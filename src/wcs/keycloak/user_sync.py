@@ -12,12 +12,16 @@ Triggers:
     - Manual: @@sync-keycloak-users browser view
     - Combined: Also triggered by @@sync-keycloak when sync_users is enabled
 """
-from wcs.keycloak.client import get_keycloak_plugin
+from wcs.keycloak.client import get_client_and_plugin
 from wcs.keycloak.client import is_sync_enabled
+from wcs.keycloak.plugin import extract_user_storage_data
 import logging
 
 
 logger = logging.getLogger(__name__)
+
+# Maximum results to fetch from Keycloak during user sync
+MAX_SYNC_USERS = 10000
 
 
 def is_user_sync_enabled():
@@ -27,28 +31,6 @@ def is_user_sync_enabled():
         True if Keycloak is configured and user sync is enabled, False otherwise.
     """
     return is_sync_enabled('sync_users')
-
-
-def _get_client_and_plugin(operation_name):
-    """Get the Keycloak client and plugin, logging warnings if unavailable.
-
-    Args:
-        operation_name: Name of the operation (for log messages).
-
-    Returns:
-        Tuple of (client, plugin) or (None, None) if either is unavailable.
-    """
-    plugin = get_keycloak_plugin()
-    if not plugin:
-        logger.warning(f"KeycloakPlugin not found, skipping {operation_name}")
-        return None, None
-
-    client = plugin.get_client()
-    if not client:
-        logger.warning(f"Keycloak client not configured, skipping {operation_name}")
-        return None, None
-
-    return client, plugin
 
 
 def _remove_stale_users(user_storage, keycloak_usernames):
@@ -90,12 +72,12 @@ def cleanup_deleted_users():
     """
     stats = {'users_cleaned': 0, 'errors': 0}
 
-    client, plugin = _get_client_and_plugin('user cleanup')
+    client, plugin = get_client_and_plugin('user cleanup')
     if not client:
         return stats
 
     try:
-        keycloak_users = client.search_users(max_results=10000)
+        keycloak_users = client.search_users(max_results=MAX_SYNC_USERS)
         keycloak_usernames = {
             user.get('username') for user in keycloak_users if user.get('username')
         }
@@ -129,12 +111,12 @@ def sync_all_users():
     """
     stats = {'users_synced': 0, 'users_removed': 0, 'errors': 0}
 
-    client, plugin = _get_client_and_plugin('user sync')
+    client, plugin = get_client_and_plugin('user sync')
     if not client:
         return stats
 
     try:
-        keycloak_users = client.search_users(max_results=10000)
+        keycloak_users = client.search_users(max_results=MAX_SYNC_USERS)
         keycloak_usernames = set()
 
         user_storage = plugin._get_user_storage()
@@ -147,11 +129,7 @@ def sync_all_users():
             keycloak_usernames.add(username)
 
             try:
-                user_storage[username] = {
-                    'email': user.get('email', ''),
-                    'firstName': user.get('firstName', ''),
-                    'lastName': user.get('lastName', ''),
-                }
+                user_storage[username] = extract_user_storage_data(user)
                 stats['users_synced'] += 1
             except Exception as e:
                 logger.error(f"Error syncing user {username}: {e}")

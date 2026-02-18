@@ -43,7 +43,10 @@ class TestKeycloakEnumerateUsers(KeycloakTestMixin, FunctionalTesting):
         super().tearDown()
 
     def test_plugin_implements_user_enumeration_interface(self):
-        self.assertTrue(IUserEnumerationPlugin.providedBy(self.plugin))
+        self.assertTrue(
+            IUserEnumerationPlugin.providedBy(self.plugin),
+            'Plugin should implement IUserEnumerationPlugin',
+        )
 
     def test_enumerate_users_by_id(self):
         username = 'test_enum_by_id_123'
@@ -135,7 +138,7 @@ class TestKeycloakEnumerateUsers(KeycloakTestMixin, FunctionalTesting):
     def test_enumerate_users_max_results(self):
         results = self.plugin.enumerateUsers(id='a', max_results=2)
 
-        self.assertTrue(len(results) <= 2)
+        self.assertTrue(len(results) <= 2, 'Results should not exceed max_results limit of 2')
 
 
 class TestKeycloakUserEnumerationPluginIntegration(KeycloakPluginTestMixin, FunctionalTesting):

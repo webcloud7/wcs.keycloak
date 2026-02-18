@@ -23,8 +23,8 @@ import requests
 import transaction
 
 
-class TestKeycloakAdminClient(KeycloakTestMixin, FunctionalTesting):
-    """Tests for KeycloakAdminClient API methods."""
+class KeycloakClientTestBase(KeycloakTestMixin, FunctionalTesting):
+    """Base class for tests that need a Keycloak admin client."""
 
     def setUp(self):
         super().setUp()
@@ -34,10 +34,14 @@ class TestKeycloakAdminClient(KeycloakTestMixin, FunctionalTesting):
         self._teardown_keycloak_client()
         super().tearDown()
 
+
+class TestKeycloakAdminClient(KeycloakClientTestBase):
+    """Tests for KeycloakAdminClient API methods."""
+
     def test_authentication(self):
         token = self.client._authenticate()
         self.assertIsNotNone(token)
-        self.assertTrue(len(token) > 0)
+        self.assertTrue(len(token) > 0, 'Token should not be empty')
 
     def test_create_user(self):
         username = 'test_create_user_123'
@@ -55,7 +59,7 @@ class TestKeycloakAdminClient(KeycloakTestMixin, FunctionalTesting):
         )
 
         self.assertIsNotNone(user_id)
-        self.assertTrue(len(user_id) > 0)
+        self.assertTrue(len(user_id) > 0, 'User ID should not be empty')
 
         found_id = self.client.get_user_id_by_username(username)
         self.assertEqual(user_id, found_id)
@@ -155,19 +159,11 @@ class TestKeycloakAdminClient(KeycloakTestMixin, FunctionalTesting):
             actions=['UPDATE_PASSWORD', 'CONFIGURE_TOTP'],
         )
 
-        self.assertTrue(result)
+        self.assertTrue(result, 'Setting required actions should succeed')
 
 
-class TestKeycloakSearchUsers(KeycloakTestMixin, FunctionalTesting):
+class TestKeycloakSearchUsers(KeycloakClientTestBase):
     """Tests for the search_users method of KeycloakAdminClient."""
-
-    def setUp(self):
-        super().setUp()
-        self._setup_keycloak_client()
-
-    def tearDown(self):
-        self._teardown_keycloak_client()
-        super().tearDown()
 
     def test_search_users_by_username(self):
         username = 'test_search_user_123'
@@ -223,7 +219,7 @@ class TestKeycloakSearchUsers(KeycloakTestMixin, FunctionalTesting):
 
         users = self.client.search_users(search='UniqueFirstName')
 
-        self.assertTrue(len(users) >= 1)
+        self.assertTrue(len(users) >= 1, 'General search should return at least one user')
         usernames = [u['username'] for u in users]
         self.assertIn(username, usernames)
 
@@ -249,7 +245,7 @@ class TestKeycloakSearchUsers(KeycloakTestMixin, FunctionalTesting):
     def test_search_users_max_results(self):
         users = self.client.search_users(search='', max_results=2)
 
-        self.assertTrue(len(users) <= 2)
+        self.assertTrue(len(users) <= 2, 'Search should respect max_results limit')
 
     def test_search_users_not_found(self):
         users = self.client.search_users(username='nonexistent_user_xyz_999')
@@ -257,16 +253,8 @@ class TestKeycloakSearchUsers(KeycloakTestMixin, FunctionalTesting):
         self.assertEqual(len(users), 0)
 
 
-class TestKeycloakSearchGroups(KeycloakTestMixin, FunctionalTesting):
+class TestKeycloakSearchGroups(KeycloakClientTestBase):
     """Integration tests for group search methods in KeycloakAdminClient."""
-
-    def setUp(self):
-        super().setUp()
-        self._setup_keycloak_client()
-
-    def tearDown(self):
-        self._teardown_keycloak_client()
-        super().tearDown()
 
     def test_create_group(self):
         group_name = 'test_create_group_123'
@@ -275,7 +263,7 @@ class TestKeycloakSearchGroups(KeycloakTestMixin, FunctionalTesting):
         self._created_groups.append(group_id)
 
         self.assertIsNotNone(group_id)
-        self.assertTrue(len(group_id) > 0)
+        self.assertTrue(len(group_id) > 0, 'Group ID should not be empty')
 
         # Verify group exists
         group = self.client.get_group(group_id)
@@ -288,7 +276,7 @@ class TestKeycloakSearchGroups(KeycloakTestMixin, FunctionalTesting):
 
         result = self.client.delete_group(group_id)
 
-        self.assertTrue(result)
+        self.assertTrue(result, 'delete_group should return True on success')
         # Verify group is deleted
         group = self.client.get_group(group_id)
         self.assertIsNone(group)
@@ -312,7 +300,7 @@ class TestKeycloakSearchGroups(KeycloakTestMixin, FunctionalTesting):
         groups = self.client.search_groups(search='unique_xyz')
 
         self.assertIsInstance(groups, list)
-        self.assertTrue(len(groups) >= 1)
+        self.assertTrue(len(groups) >= 1, 'Search should return at least one matching group')
         group_names = [g['name'] for g in groups]
         self.assertIn(group_name, group_names)
 
@@ -324,7 +312,7 @@ class TestKeycloakSearchGroups(KeycloakTestMixin, FunctionalTesting):
 
         groups = self.client.search_groups(max_results=2)
 
-        self.assertTrue(len(groups) <= 2)
+        self.assertTrue(len(groups) <= 2, 'Search should respect max_results limit')
 
     def test_search_groups_with_exact_match(self):
         group_name = 'test_exact_match_group_123'
@@ -388,7 +376,7 @@ class TestKeycloakSearchGroups(KeycloakTestMixin, FunctionalTesting):
         # Add user to group
         result = self.client.add_user_to_group(user_id, group_id)
 
-        self.assertTrue(result)
+        self.assertTrue(result, 'Adding user to group should succeed')
 
         # Verify user is in group
         groups = self.client.get_groups_for_user(user_id)
@@ -415,7 +403,7 @@ class TestKeycloakSearchGroups(KeycloakTestMixin, FunctionalTesting):
         # Remove user from group
         result = self.client.remove_user_from_group(user_id, group_id)
 
-        self.assertTrue(result)
+        self.assertTrue(result, 'Removing user from group should succeed')
 
         # Verify user is not in group
         groups = self.client.get_groups_for_user(user_id)
@@ -466,7 +454,7 @@ class TestKeycloakClientUrls(FunctionalTesting):
 
         self.assertEqual(
             url,
-            'https://keycloak.example.com/realms/my-realm/protocol/openid-connect/token'
+            'https://keycloak.example.com/realms/my-realm/protocol/openid-connect/token',
         )
 
     def test_admin_url(self):
@@ -574,6 +562,13 @@ class TestPluginGetClient(FunctionalTesting):
         super().setUp()
         self.grant('Manager')
 
+    def tearDown(self):
+        acl_users = api.portal.get_tool('acl_users')
+        if 'keycloak' in acl_users:
+            acl_users.manage_delObjects(['keycloak'])
+            transaction.commit()
+        super().tearDown()
+
     def _setup_keycloak_plugin(
         self,
         server_url='',
@@ -592,12 +587,6 @@ class TestPluginGetClient(FunctionalTesting):
         plugin.admin_client_secret = admin_client_secret
         transaction.commit()
         return plugin
-
-    def _remove_keycloak_plugin(self):
-        acl_users = api.portal.get_tool('acl_users')
-        if 'keycloak' in acl_users:
-            acl_users.manage_delObjects(['keycloak'])
-            transaction.commit()
 
     def test_get_client_returns_none_when_not_configured(self):
         plugin = self._setup_keycloak_plugin(
