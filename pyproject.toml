@@ -1,2 +1,42 @@
 [build-system]
 requires = ["setuptools>=68.2,<80", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wcs.keycloak"
+version = "1.0.0a1"
+description = "Keycloak integration for Plone 6"
+readme = "README.md"
+license = "GPL-2.0"
+requires-python = ">=3.11"
+authors = [
+    {name = "webcloud7", email = "info@webcloud7.ch"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Plone :: 6.0",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "plone.api",
+    "plone.protect",
+    "requests",
+    "Products.PluggableAuthService",
+    "BTrees",
+]
+
+[project.optional-dependencies]
+test = [
+    "beautifulsoup4",
+    "plone.app.testing",
+    "plone.restapi",
+    "plone.testing",
+    "requests",
+]
+
+[project.entry-points."z3c.autoinclude.plugin"]
+target = "plone"
+
+[tool.setuptools.packages.find]
+where = ["src"]

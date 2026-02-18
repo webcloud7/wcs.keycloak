@@ -6,6 +6,8 @@ This plugin works best in combination with [pas.plugins.oidc](https://github.com
 
 **Performance note on IUserEnumerationPlugin**: The user enumeration plugin checks its local cache first and falls back to a Keycloak API call for every cache miss. Since `getMemberById` is called frequently throughout Plone (e.g. content listings, permission checks), this adds significant overhead when multiple user sources are active. Only activate `IUserEnumerationPlugin` if Keycloak is the sole user source.
 
+History: This plugin was implemented by myself in a privte project and extracted via AI into it's own package.
+
 ## Features
 
 - **PAS Plugin**: Pluggable Authentication Service plugin for Keycloak integration

@@ -50,7 +50,7 @@ TEST_ENV_VARS=WSGI_SERVER_PORT=65035
 ##############################################################################
 # targets and prerequisites
 # target has to be one file, otherwise step gets executes for each file separate
-PREPARE_PREREQUISITES=${PIP_REQUIREMENTS_IN_FILE} ${CONSTRAINTS_IN} sources.ini ${ADDONBASE}setup.cfg
+PREPARE_PREREQUISITES=${PIP_REQUIREMENTS_IN_FILE} ${CONSTRAINTS_IN} sources.ini ${ADDONBASE}pyproject.toml
 PREPARE_TARGET=requirements-mxdev.txt
 INSTALL_PREREQUSISTES=${PREPARE_TARGET}
 INSTALL_TARGET=.installed.txt
