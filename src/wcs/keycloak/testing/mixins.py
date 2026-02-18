@@ -7,12 +7,13 @@ from Products.PluggableAuthService.interfaces.plugins import IUserEnumerationPlu
 from wcs.keycloak.client import KeycloakAdminClient
 from wcs.keycloak.plugin import manage_addKeycloakPlugin
 
+import os
 import requests
 import transaction
 
 
 # Keycloak test server configuration
-KEYCLOAK_SERVER_URL = "http://localhost:8000"
+KEYCLOAK_SERVER_URL = os.environ.get("KEYCLOAK_SERVER_URL", "http://localhost:8000")
 KEYCLOAK_REALM = "saml-test"
 KEYCLOAK_ADMIN_USER = "admin"
 KEYCLOAK_ADMIN_PASSWORD = "admin"

@@ -1,6 +1,7 @@
 """Keycloak Docker test layer."""
 
 from wcs.keycloak.testing.docker import BaseDockerServiceLayer
+from wcs.keycloak.testing.mixins import KEYCLOAK_SERVER_URL
 
 import os
 import requests
@@ -53,7 +54,7 @@ class KeyCloakLayer(BaseDockerServiceLayer):
         """Configure admin session with authentication token."""
         # Import realm
         access_token = requests.post(
-            "http://localhost:8000/realms/master/protocol/openid-connect/token",
+            f"{KEYCLOAK_SERVER_URL}/realms/master/protocol/openid-connect/token",
             data={
                 "username": "admin",
                 "password": "admin",
@@ -74,7 +75,7 @@ class KeyCloakLayer(BaseDockerServiceLayer):
         self.admin_session.headers.update({"Content-Type": "application/json"})
 
         response = self.admin_session.get(
-            "http://localhost:8000/admin/realms/saml-test"
+            f"{KEYCLOAK_SERVER_URL}/admin/realms/saml-test"
         )
         if response.status_code == 200:
             self._delete_realm()
@@ -92,7 +93,7 @@ class KeyCloakLayer(BaseDockerServiceLayer):
             realm_data = realm_data_str.encode("utf-8")
 
         response = self.admin_session.post(
-            "http://localhost:8000/admin/realms", data=realm_data
+            f"{KEYCLOAK_SERVER_URL}/admin/realms", data=realm_data
         )
         assert response.status_code == 201, "Realm not created"
 
@@ -101,7 +102,7 @@ class KeyCloakLayer(BaseDockerServiceLayer):
         self._configure()
         self.admin_session.headers.update({"Content-Type": "application/json"})
         response = self.admin_session.delete(
-            "http://localhost:8000/admin/realms/saml-test"
+            f"{KEYCLOAK_SERVER_URL}/admin/realms/saml-test"
         )
         assert response.status_code == 204, "Realm not deleted"
 
@@ -121,7 +122,7 @@ class KeyCloakLayer(BaseDockerServiceLayer):
             True if Keycloak is ready, False otherwise.
         """
         try:
-            response = requests.get("http://localhost:8000/health/ready")
+            response = requests.get(f"{KEYCLOAK_SERVER_URL}/health/ready")
             return response.status_code == 200 and response.json()["status"] == "UP"
         except requests.exceptions.ConnectionError:
             return False
