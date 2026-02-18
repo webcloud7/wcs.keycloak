@@ -1,36 +1,4 @@
-"""Keycloak synchronization to Plone.
-
-This module provides functions to sync Keycloak groups, memberships, and users
-to Plone. Keycloak is the single source of truth - data is synced one-way from
-Keycloak to Plone.
-
-Sync Strategy:
-    Groups synced from Keycloak are prefixed with 'keycloak_' to distinguish
-    them from native Plone groups. This allows:
-    - Clear identification of Keycloak-managed groups
-    - Safe deletion of groups removed from Keycloak
-    - Coexistence with native Plone groups
-
-Sync Operations:
-    - sync_all_groups(): Creates, updates, and deletes Plone groups to match
-      Keycloak groups
-    - sync_all_memberships(): Updates membership of all synced groups
-    - sync_user_memberships(): Updates a single user's group memberships
-    - sync_groups_and_memberships(): Sync groups and memberships only
-    - sync_all(): Full sync of groups, memberships, users, and cleanup
-
-Triggers:
-    - Automatic: on_user_logged_in event handler (when sync_groups enabled)
-    - Manual: @@sync-keycloak-groups, @@sync-keycloak-users, @@sync-keycloak
-
-Constants:
-    KEYCLOAK_GROUP_PREFIX: Prefix added to Keycloak group names ('keycloak_')
-
-Note:
-    The sync is one-way only. Changes to synced groups in Plone will be
-    overwritten on the next sync. To modify group membership, make changes
-    in Keycloak.
-"""
+"""Keycloak group and membership synchronization to Plone."""
 from plone import api
 from wcs.keycloak.client import get_client_and_plugin
 from wcs.keycloak.client import is_sync_enabled

@@ -1,85 +1,4 @@
-"""Keycloak Admin REST API client.
-
-This module provides a Python client for interacting with the Keycloak Admin API,
-including user and group management operations.
-
-The client authenticates using OAuth2 client credentials flow with a service
-account that has appropriate realm-management roles (manage-users, view-users,
-query-users).
-
-Classes:
-    KeycloakAdminClient: Main client class for Admin API operations
-    KeycloakError: Base exception for Keycloak operations
-    KeycloakAuthenticationError: Raised when authentication fails
-    KeycloakUserCreationError: Raised when user creation fails
-    KeycloakUserExistsError: Raised when creating a user that exists
-
-Functions:
-    get_keycloak_plugin(): Get the KeycloakPlugin instance from PAS
-
-Authentication:
-    The client uses client_credentials grant type to obtain an access token.
-    Tokens are automatically refreshed when they expire (on 401 response).
-
-API Coverage:
-    User operations:
-        - create_user(): Create a new user
-        - get_user(): Get user by username or email
-        - get_user_id_by_username(): Get user UUID by username
-        - get_user_id_by_email(): Get user UUID by email
-        - search_users(): Search users with various filters
-        - send_execute_actions_email(): Send action email to user
-        - send_verify_email(): Send verification email
-        - set_user_required_actions(): Set required actions for next login
-
-    Group operations:
-        - create_group(): Create a new group
-        - delete_group(): Delete a group
-        - get_group(): Get group by UUID
-        - get_group_by_name(): Get group by name
-        - search_groups(): Search groups
-        - get_groups_for_user(): Get user's group memberships
-        - get_group_members(): Get members of a group
-        - add_user_to_group(): Add user to group
-        - remove_user_from_group(): Remove user from group
-
-Example:
-    Basic usage with service account credentials::
-
-        from wcs.keycloak.client import KeycloakAdminClient
-
-        client = KeycloakAdminClient(
-            server_url='https://keycloak.example.com',
-            realm='my-realm',
-            client_id='plone-service-account',
-            client_secret='secret'
-        )
-
-        # Search for users
-        users = client.search_users(username='john')
-
-        # Create a user
-        user_id = client.create_user(
-            username='newuser',
-            email='newuser@example.com',
-            first_name='New',
-            last_name='User'
-        )
-
-    Using the plugin method (requires configured plugin)::
-
-        from wcs.keycloak.client import get_keycloak_plugin
-
-        plugin = get_keycloak_plugin()
-        if plugin:
-            client = plugin.get_client()
-            if client:
-                users = client.search_users(email='test@example.com')
-
-Constants:
-    DEFAULT_EMAIL_LINK_LIFESPAN: Default validity period for email links
-        (86400 seconds = 24 hours)
-"""
+"""Keycloak Admin REST API client."""
 from plone import api
 import logging
 import requests
@@ -92,17 +11,7 @@ DEFAULT_EMAIL_LINK_LIFESPAN = 86400
 
 
 class KeycloakAdminClient:
-    """Client for Keycloak Admin REST API operations.
-
-    This client handles authentication with Keycloak and provides methods
-    for user management operations.
-
-    Attributes:
-        server_url: Base URL of the Keycloak server.
-        realm: The realm to manage users in.
-        client_id: Client ID for admin access.
-        client_secret: Client secret for authentication.
-    """
+    """Client for Keycloak Admin REST API operations."""
 
     def __init__(self, server_url, realm, client_id, client_secret):
         """Initialize the Keycloak admin client.

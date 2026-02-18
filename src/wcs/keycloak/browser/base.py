@@ -6,14 +6,7 @@ import json
 
 
 class BaseSyncView(BrowserView):
-    """Base class for Keycloak sync views.
-
-    Subclasses must implement:
-        - is_enabled(): Check if the sync feature is enabled.
-        - run_sync(): Execute the sync operation and return stats dict.
-        - build_message(stats): Build a human-readable summary message.
-        - disabled_message: String to return when sync is not enabled.
-    """
+    """Base class for Keycloak sync views."""
 
     disabled_message = 'Sync is not enabled'
 

@@ -1,8 +1,4 @@
-"""Keycloak Docker test layer.
-
-This module provides a test layer that runs a Keycloak Docker container
-and configures a test realm for integration testing.
-"""
+"""Keycloak Docker test layer."""
 from wcs.keycloak.testing.docker import BaseDockerServiceLayer
 import os
 import requests
@@ -10,22 +6,7 @@ import time
 
 
 class KeyCloakLayer(BaseDockerServiceLayer):
-    """Test layer that provides a running Keycloak instance.
-
-    This layer:
-    - Starts a Keycloak Docker container
-    - Creates a test realm with the saml-test-realm.json configuration
-    - Provides helper methods for realm management
-
-    Attributes:
-        name: Human-readable name for logging.
-        container_name: Docker container name.
-        image_name: Docker image to use.
-        port: Port mapping.
-        env: Environment variables for Keycloak.
-        command: Keycloak start command.
-        admin_session: Requests session for admin API.
-    """
+    """Test layer that provides a running Keycloak instance."""
 
     name = "Keycloak service"
     container_name = 'keycloak_test'

@@ -1,8 +1,4 @@
-"""Keycloak PAS Plugin for Plone.
-
-This module provides a PAS (Pluggable Authentication Service) plugin that
-integrates with Keycloak for user management, enumeration, and properties.
-"""
+"""Keycloak PAS Plugin for Plone."""
 from AccessControl import ClassSecurityInfo
 from AccessControl.class_init import InitializeClass
 from BTrees.OOBTree import OOBTree
@@ -89,37 +85,7 @@ def manage_addKeycloakPlugin(
 
 
 class KeycloakPlugin(BasePlugin):
-    """PAS plugin that creates users in Keycloak.
-
-    This plugin implements IUserAdderPlugin to intercept user creation
-    and create the user in Keycloak.
-
-    When a user is created:
-    1. The user is created in Keycloak with the provided credentials
-    2. An execute-actions email is sent to the user with actions based on
-       the plugin configuration (password setup, email verification, 2FA)
-
-    Minimal keycloak config:
-    Have a client in Keycloak with:
-    - Settings -> Service accounts roles enabled
-    - Settings Client Authentification enabled (this enables the Creditals tab)
-    - Service account roles: manage-users, view-user and query-users
-
-    Attributes:
-        meta_type: The Zope meta type for this plugin.
-        title: The title of this plugin instance.
-        server_url: Keycloak server URL.
-        realm: Keycloak realm name.
-        admin_client_id: Admin client ID for API access.
-        admin_client_secret: Admin client secret.
-        sync_groups: Whether to sync groups on user login.
-        send_password_reset: Whether to send password reset email.
-        send_verify_email: Whether to send email verification.
-        require_totp: Whether to require 2FA setup.
-        email_link_lifespan: How long email links are valid (seconds).
-        redirect_uri: Redirect URI after completing Keycloak actions.
-        redirect_client_id: Client ID for redirect.
-    """
+    """PAS plugin for Keycloak user management, enumeration, and properties."""
 
     meta_type = 'Keycloak Plugin'
     zmi_icon = 'fas fa-key'

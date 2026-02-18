@@ -5,23 +5,7 @@ from wcs.keycloak.sync import sync_all
 
 
 class SyncKeycloakView(BaseSyncView):
-    """View to perform a full Keycloak-to-Plone synchronization.
-
-    This view performs a complete synchronization of:
-    1. All groups from Keycloak (creates, updates, deletes Plone groups)
-    2. All group memberships (adds/removes users from groups)
-    3. All users (when user sync is enabled)
-    4. Cleanup of deleted users from local storage
-
-    For group-only sync, use @@sync-keycloak-groups instead.
-    For user-only sync, use @@sync-keycloak-users instead.
-
-    Requires Manager role to execute.
-
-    Usage:
-        - Manual: Visit @@sync-keycloak in browser
-        - Cron: curl -u admin:password http://site/@@sync-keycloak
-    """
+    """View to perform a full Keycloak-to-Plone synchronization."""
 
     disabled_message = 'Keycloak group sync is not enabled'
 

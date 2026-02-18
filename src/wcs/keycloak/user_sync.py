@@ -1,17 +1,4 @@
-"""Keycloak user synchronization to Plone's plugin storage.
-
-This module provides functions to sync Keycloak users to the KeycloakPlugin's
-_user_storage (OOBTree). Keycloak is the single source of truth - users are
-synced one-way from Keycloak to the plugin storage.
-
-Sync Operations:
-    - sync_all_users(): Fetches all users from Keycloak and stores them in
-      _user_storage, removing users that no longer exist in Keycloak.
-
-Triggers:
-    - Manual: @@sync-keycloak-users browser view
-    - Combined: Also triggered by @@sync-keycloak when sync_users is enabled
-"""
+"""Keycloak user synchronization to plugin storage."""
 from wcs.keycloak.client import get_client_and_plugin
 from wcs.keycloak.client import is_sync_enabled
 from wcs.keycloak.plugin import extract_user_storage_data

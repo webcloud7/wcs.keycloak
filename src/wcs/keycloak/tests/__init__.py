@@ -55,34 +55,18 @@ KEYCLOAK_FUNCTIONAL_TESTING = PloneFunctionalTesting(
 
 
 class FunctionalTesting(TestCase):
-    """Base class for wcs.keycloak functional tests.
-
-    Provides common setup and helper properties for API testing.
-
-    Attributes:
-        layer: The test layer to use.
-        portal: The Plone portal object.
-        request: The current request object.
-    """
+    """Base class for wcs.keycloak functional tests."""
 
     layer = KEYCLOAK_FUNCTIONAL_TESTING
 
     @property
     def api_headers(self):
-        """Get headers for JSON API requests.
-
-        Returns:
-            Dict with Accept header set to application/json.
-        """
+        """Get headers for JSON API requests."""
         return {'Accept': 'application/json'}
 
     @property
     def api_post_headers(self):
-        """Get headers for JSON API POST requests.
-
-        Returns:
-            Dict with Accept and Content-Type headers set to application/json.
-        """
+        """Get headers for JSON API POST requests."""
         return {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -90,20 +74,12 @@ class FunctionalTesting(TestCase):
 
     @property
     def portal_url(self):
-        """Get the portal URL for requests.
-
-        Returns:
-            The absolute URL of the portal.
-        """
+        """Get the portal URL."""
         return self.portal.absolute_url()
 
     @property
     def credentials(self):
-        """Get site owner credentials for requests authentication.
-
-        Returns:
-            Tuple of (username, password) for HTTP Basic auth with Manager access.
-        """
+        """Get site owner credentials for HTTP Basic auth."""
         return (SITE_OWNER_NAME, SITE_OWNER_PASSWORD)
 
     def setUp(self):
@@ -112,10 +88,6 @@ class FunctionalTesting(TestCase):
         self.request = self.layer['request']
 
     def grant(self, *roles):
-        """Grant roles to the test user.
-
-        Args:
-            *roles: Role names to grant.
-        """
+        """Grant roles to the test user."""
         setRoles(self.portal, TEST_USER_ID, list(roles))
         transaction.commit()

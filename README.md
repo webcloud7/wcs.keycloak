@@ -11,6 +11,49 @@ Keycloak integration for Plone 6.
 - **Group Synchronization**: One-way sync of groups and memberships from Keycloak to Plone
 - **User Synchronization**: One-way sync of users from Keycloak to the plugin's local storage
 
+## Architecture
+
+The plugin implements multiple PAS (Pluggable Authentication Service) interfaces:
+
+- **IUserAdderPlugin**: Intercepts user creation to create users in Keycloak
+- **IUserEnumerationPlugin**: Provides user enumeration from Keycloak
+- **IPropertiesPlugin**: Provides user properties from Keycloak
+
+Group and user synchronization is handled separately via event subscribers (automatic on login) and browser views (manual/scheduled).
+
+### Modules
+
+| Module | Description |
+|--------|-------------|
+| `plugin` | `KeycloakPlugin` PAS plugin with `_v_` volatile client caching |
+| `client` | `KeycloakAdminClient` REST API client using OAuth2 client credentials flow with automatic token refresh |
+| `sync` | Group sync, membership sync, `sync_all()` orchestrator. Groups are prefixed with `keycloak_` to coexist with native Plone groups |
+| `user_sync` | User sync to `_user_storage` OOBTree |
+| `interfaces` | `IKeycloakLayer` browser layer, `IKeycloakPlugin` marker interface |
+| `browser/base` | `BaseSyncView` base class for the 3 sync views |
+| `browser/user_management` | Overrides for Plone's user/group control panels with Keycloak sync buttons and admin links |
+
+### Sync Strategy
+
+Keycloak is the single source of truth. All sync operations are one-way from Keycloak to Plone. Changes to synced groups or users in Plone will be overwritten on the next sync.
+
+Groups synced from Keycloak are prefixed with `keycloak_` to distinguish them from native Plone groups. This allows clear identification, safe deletion, and coexistence with native groups.
+
+### Client Authentication
+
+The `KeycloakAdminClient` authenticates using the `client_credentials` OAuth2 grant type. Tokens are automatically refreshed when they expire (on 401 response). The client provides operations for user management (create, search, get, email actions) and group management (create, delete, search, membership).
+
+### Testing Infrastructure
+
+All tests run against a real Keycloak Docker container (no mocks):
+
+| Component | Description |
+|-----------|-------------|
+| `BaseDockerServiceLayer` | Base layer for running Docker containers as test fixtures |
+| `KeyCloakLayer` | Starts Keycloak Docker container and creates test realm |
+| `KeycloakTestMixin` | Utilities for admin client creation, authentication, user/group cleanup |
+| `KeycloakPluginTestMixin` | Plugin setup with interface activation and service account configuration |
+
 ## Installation
 
 Add `wcs.keycloak` to your Plone installation requirements:

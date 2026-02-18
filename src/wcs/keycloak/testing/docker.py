@@ -1,8 +1,4 @@
-"""Base Docker service layer for testing.
-
-This module provides a base class for running Docker containers
-as test fixtures.
-"""
+"""Base Docker service layer for testing."""
 from plone.testing import Layer
 import logging
 import shutil
@@ -18,20 +14,7 @@ LOGGER.addHandler(handler)
 
 
 class BaseDockerServiceLayer(Layer):
-    """Base layer for Docker-based test services.
-
-    Subclasses should define:
-    - image_name: Docker image to use
-    - container_name: Name for the container
-    - port: Port mapping (e.g., '8000:8080')
-    - name: Human-readable name for logging
-    - env: Dict of environment variables (optional)
-    - command: Command to run in container (optional)
-
-    And implement:
-    - _wait_for_service(): Wait until service is ready
-    - _test_connect_service(): Test if service is running
-    """
+    """Base layer for Docker-based test services."""
 
     MAX_CONNECTION_RETRIES = 20
 

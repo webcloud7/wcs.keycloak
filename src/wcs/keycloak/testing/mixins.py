@@ -1,10 +1,4 @@
-"""Shared test utilities and fixtures for Keycloak integration tests.
-
-This module provides common test infrastructure used across all Keycloak tests:
-- KeycloakTestMixin: Mixin class for Keycloak test utilities
-- Constants for test configuration
-- Helper methods for user/group cleanup
-"""
+"""Shared test utilities and fixtures for Keycloak integration tests."""
 from plone import api
 from Products.PluggableAuthService.interfaces.plugins import IPropertiesPlugin
 from Products.PluggableAuthService.interfaces.plugins import IUserAdderPlugin
@@ -27,16 +21,7 @@ SERVICE_ACCOUNT_CLIENT_SECRET = 'test-secret-for-enumeration'
 
 
 class KeycloakTestMixin:
-    """Mixin providing common Keycloak test utilities.
-
-    Provides methods for creating admin clients, authenticating,
-    and cleaning up test users and groups.
-
-    Attributes:
-        client: KeycloakAdminClient instance for tests.
-        _created_users: List of usernames created during tests.
-        _created_groups: List of group IDs created during tests.
-    """
+    """Mixin providing common Keycloak test utilities."""
 
     _created_users = None
     _created_groups = None
@@ -203,11 +188,7 @@ class KeycloakTestMixin:
 
 
 class KeycloakPluginTestMixin(KeycloakTestMixin):
-    """Extended mixin with Keycloak plugin setup utilities for integration tests.
-
-    Provides methods for setting up the Keycloak PAS plugin with various
-    interface activations and creating test users.
-    """
+    """Extended mixin with Keycloak plugin setup for integration tests."""
 
     def _setup_keycloak_plugin(
         self,
