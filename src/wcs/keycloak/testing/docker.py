@@ -1,14 +1,16 @@
 """Base Docker service layer for testing."""
+
 from plone.testing import Layer
+
 import logging
 import shutil
 import subprocess
 import sys
 
 
-LOGGER = logging.getLogger('wcs.keycloak.testing')
+LOGGER = logging.getLogger("wcs.keycloak.testing")
 handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter('\n%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("\n%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 LOGGER.addHandler(handler)
 
@@ -50,8 +52,10 @@ class BaseDockerServiceLayer(Layer):
         except Exception:
             self.external_service = False
 
-        if not shutil.which('docker'):
-            raise RuntimeError('You need to have docker installed in order to run those tests')
+        if not shutil.which("docker"):
+            raise RuntimeError(
+                "You need to have docker installed in order to run those tests"
+            )
         if not self.is_docker_container_available():
             self._create_docker_container()
         self.start_service()
@@ -73,34 +77,25 @@ class BaseDockerServiceLayer(Layer):
         Raises:
             RuntimeError: If command fails with error.
         """
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True)
+        result = subprocess.run(command, capture_output=True, text=True)  # noqa: S603
 
         if result.stderr:
-            raise RuntimeError(
-                f'Command ended with an error: {result.stderr}'
-            )
+            raise RuntimeError(f"Command ended with an error: {result.stderr}")
         return result
 
     def start_service(self):
         """Start the Docker container."""
-        result = self._run_docker_command(
-            ["docker", "start", self.container_name]
-        )
+        result = self._run_docker_command(["docker", "start", self.container_name])
         if result.returncode == 0:
-            LOGGER.info(f'{self.name} started: {result.stdout}')
+            LOGGER.info(f"{self.name} started: {result.stdout}")
 
         self._wait_for_service()
 
     def stop_service(self):
         """Stop the Docker container."""
-        result = self._run_docker_command(
-            ["docker", "stop", self.container_name]
-        )
+        result = self._run_docker_command(["docker", "stop", self.container_name])
         if result.returncode == 0:
-            LOGGER.info(f'{self.name} stopped: {result.stdout}')
+            LOGGER.info(f"{self.name} stopped: {result.stdout}")
 
     def _create_docker_container(self, *arguments):
         """Create the Docker container.
@@ -113,19 +108,22 @@ class BaseDockerServiceLayer(Layer):
                 "docker",
                 "container",
                 "create",
-                "--name", self.container_name,
-                "-p", self.port,
-
+                "--name",
+                self.container_name,
+                "-p",
+                self.port,
             ]
         if self.env:
             for key, value in self.env.items():
-                arguments.extend(['-e', f'{key}={value}'])
+                arguments.extend(["-e", f"{key}={value}"])
         arguments.append(self.image_name)
 
         if self.command:
             arguments.append(self.command)
         result = self._run_docker_command(arguments)
-        LOGGER.info(f'Created {self.name} container: {self.container_name} ({result.stdout})')
+        LOGGER.info(
+            f"Created {self.name} container: {self.container_name} ({result.stdout})"
+        )
 
     def is_docker_container_available(self):
         """Check if the Docker container already exists.
@@ -138,9 +136,9 @@ class BaseDockerServiceLayer(Layer):
         )
         if result.stderr:
             raise RuntimeError(
-                f'Cannot determine if test image is available: {result.stderr}'
+                f"Cannot determine if test image is available: {result.stderr}"
             )
-        LOGGER.info(f'{self.name} container available at: {result.stdout}')
+        LOGGER.info(f"{self.name} container available at: {result.stdout}")
         return bool(result.stdout) and result.returncode == 0
 
     def _wait_for_service(self):

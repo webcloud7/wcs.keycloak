@@ -1,5 +1,7 @@
 """Keycloak Admin REST API client."""
+
 from plone import api
+
 import logging
 import requests
 
@@ -17,12 +19,14 @@ class KeycloakAdminClient:
         """Initialize the Keycloak admin client.
 
         Args:
-            server_url: Base URL of the Keycloak server (e.g., 'https://keycloak.example.com')
+            server_url: Base URL of the Keycloak server
+                (e.g., 'https://keycloak.example.com')
             realm: The realm to manage users in
-            client_id: Client ID for admin access (typically 'admin-cli' or a service account)
+            client_id: Client ID for admin access
+                (typically 'admin-cli' or a service account)
             client_secret: Client secret for authentication
         """
-        self.server_url = server_url.rstrip('/')
+        self.server_url = server_url.rstrip("/")
         self.realm = realm
         self.client_id = client_id
         self.client_secret = client_secret
@@ -56,16 +60,16 @@ class KeycloakAdminClient:
         """
         token_url = self._get_token_url()
         data = {
-            'grant_type': 'client_credentials',
-            'client_id': self.client_id,
-            'client_secret': self.client_secret,
+            "grant_type": "client_credentials",
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
         }
 
         try:
             response = self._session.post(token_url, data=data)
             response.raise_for_status()
             token_data = response.json()
-            self._access_token = token_data['access_token']
+            self._access_token = token_data["access_token"]
             return self._access_token
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to authenticate with Keycloak: {e}")
@@ -80,8 +84,8 @@ class KeycloakAdminClient:
         if not self._access_token:
             self._authenticate()
         return {
-            'Authorization': f'Bearer {self._access_token}',
-            'Content-Type': 'application/json',
+            "Authorization": f"Bearer {self._access_token}",
+            "Content-Type": "application/json",
         }
 
     def _make_request(self, method, url, **kwargs):
@@ -95,7 +99,7 @@ class KeycloakAdminClient:
         Returns:
             Response object.
         """
-        headers = kwargs.pop('headers', {})
+        headers = kwargs.pop("headers", {})
         headers.update(self._get_headers())
         logger.info(f"Making {method} request to {url}")
         response = self._session.request(method, url, headers=headers, **kwargs)
@@ -112,8 +116,8 @@ class KeycloakAdminClient:
         self,
         username,
         email,
-        first_name='',
-        last_name='',
+        first_name="",
+        last_name="",
         enabled=True,
         email_verified=False,
         attributes=None,
@@ -139,24 +143,24 @@ class KeycloakAdminClient:
         url = f"{self._get_admin_url()}/users"
 
         user_data = {
-            'username': username,
-            'email': email,
-            'firstName': first_name,
-            'lastName': last_name,
-            'enabled': enabled,
-            'emailVerified': email_verified,
+            "username": username,
+            "email": email,
+            "firstName": first_name,
+            "lastName": last_name,
+            "enabled": enabled,
+            "emailVerified": email_verified,
         }
 
         if attributes:
-            user_data['attributes'] = attributes
+            user_data["attributes"] = attributes
 
         try:
-            response = self._make_request('POST', url, json=user_data)
+            response = self._make_request("POST", url, json=user_data)
 
             if response.status_code == 201:
                 # User created - extract ID from Location header
-                location = response.headers.get('Location', '')
-                user_id = location.rsplit('/', 1)[-1] if location else None
+                location = response.headers.get("Location", "")
+                user_id = location.rsplit("/", 1)[-1] if location else None
                 if user_id:
                     logger.info(f"Created Keycloak user {username} with ID {user_id}")
                     return user_id
@@ -169,7 +173,7 @@ class KeycloakAdminClient:
                 raise KeycloakUserExistsError(f"User {username} already exists")
 
             else:
-                error_msg = response.json().get('errorMessage', response.text)
+                error_msg = response.json().get("errorMessage", response.text)
                 logger.error(f"Failed to create user {username}: {error_msg}")
                 raise KeycloakUserCreationError(f"Failed to create user: {error_msg}")
 
@@ -177,7 +181,7 @@ class KeycloakAdminClient:
             logger.error(f"Request failed when creating user {username}: {e}")
             raise KeycloakUserCreationError(f"Request failed: {e}") from e
 
-    def get_user(self, username, attr='username'):
+    def get_user(self, username, attr="username"):
         """Get a user by their username or email.
 
         Args:
@@ -188,10 +192,10 @@ class KeycloakAdminClient:
             User dict if found, None otherwise.
         """
         url = f"{self._get_admin_url()}/users"
-        params = {attr: username, 'exact': 'true'}
+        params = {attr: username, "exact": "true"}
 
         try:
-            response = self._make_request('GET', url, params=params)
+            response = self._make_request("GET", url, params=params)
             response.raise_for_status()
             users = response.json()
             if users:
@@ -201,7 +205,7 @@ class KeycloakAdminClient:
             logger.error(f"Failed to get user ID for {username}: {e}")
             return None
 
-    def _get_user_id(self, value, attr='username'):
+    def _get_user_id(self, value, attr="username"):
         """Get a user's ID by a specific attribute.
 
         Args:
@@ -212,7 +216,7 @@ class KeycloakAdminClient:
             User ID if found, None otherwise.
         """
         user = self.get_user(value, attr=attr)
-        return user['id'] if user else None
+        return user["id"] if user else None
 
     def get_user_id_by_username(self, username):
         """Get a user's ID by their username.
@@ -223,7 +227,7 @@ class KeycloakAdminClient:
         Returns:
             User ID if found, None otherwise.
         """
-        return self._get_user_id(username, attr='username')
+        return self._get_user_id(username, attr="username")
 
     def get_user_id_by_email(self, email):
         """Get a user's ID by their email.
@@ -234,7 +238,7 @@ class KeycloakAdminClient:
         Returns:
             User ID if found, None otherwise.
         """
-        return self._get_user_id(email, attr='email')
+        return self._get_user_id(email, attr="email")
 
     def _build_email_params(self, lifespan, redirect_uri=None, client_id=None):
         """Build common parameters for email-related API calls.
@@ -247,11 +251,11 @@ class KeycloakAdminClient:
         Returns:
             Dict of parameters for the API request.
         """
-        params = {'lifespan': lifespan}
+        params = {"lifespan": lifespan}
         if redirect_uri:
-            params['redirect_uri'] = redirect_uri
+            params["redirect_uri"] = redirect_uri
         if client_id:
-            params['client_id'] = client_id
+            params["client_id"] = client_id
         return params
 
     def _send_user_email(self, url, params, email_type, user_id, json_body=None):
@@ -271,14 +275,16 @@ class KeycloakAdminClient:
             KeycloakError: If sending the email fails.
         """
         try:
-            response = self._make_request('PUT', url, params=params, json=json_body)
+            response = self._make_request("PUT", url, params=params, json=json_body)
 
             if response.status_code == 204:
                 logger.info(f"Sent {email_type} to user {user_id}")
                 return True
             else:
                 error_msg = response.text
-                logger.error(f"Failed to send {email_type} to user {user_id}: {error_msg}")
+                logger.error(
+                    f"Failed to send {email_type} to user {user_id}: {error_msg}"
+                )
                 raise KeycloakError(f"Failed to send {email_type}: {error_msg}")
 
         except requests.exceptions.RequestException as e:
@@ -320,10 +326,11 @@ class KeycloakAdminClient:
         url = f"{self._get_admin_url()}/users/{user_id}/execute-actions-email"
         params = self._build_email_params(lifespan, redirect_uri, client_id)
         return self._send_user_email(
-            url, params,
+            url,
+            params,
             f"execute actions email (actions: {actions})",
             user_id,
-            json_body=actions
+            json_body=actions,
         )
 
     def send_verify_email(
@@ -366,23 +373,33 @@ class KeycloakAdminClient:
         url = f"{self._get_admin_url()}/users/{user_id}"
 
         try:
-            response = self._make_request('PUT', url, json={'requiredActions': actions})
+            response = self._make_request("PUT", url, json={"requiredActions": actions})
 
             if response.status_code == 204:
                 logger.info(f"Set required actions for user {user_id}: {actions}")
                 return True
             else:
                 error_msg = response.text
-                logger.error(f"Failed to set required actions for user {user_id}: {error_msg}")
+                logger.error(
+                    f"Failed to set required actions for user {user_id}: {error_msg}"
+                )
                 return False
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Request failed when setting required actions: {e}")
             return False
 
-    def search_users(self, search=None, username=None, email=None,
-                     first_name=None, last_name=None, exact=False,
-                     first=0, max_results=None):
+    def search_users(
+        self,
+        search=None,
+        username=None,
+        email=None,
+        first_name=None,
+        last_name=None,
+        exact=False,
+        first=0,
+        max_results=None,
+    ):
         """Search for users in Keycloak.
 
         Args:
@@ -403,21 +420,21 @@ class KeycloakAdminClient:
         url = f"{self._get_admin_url()}/users"
 
         param_mapping = {
-            'search': search,
-            'username': username,
-            'email': email,
-            'firstName': first_name,
-            'lastName': last_name,
-            'first': first if first else None,
-            'max': max_results,
+            "search": search,
+            "username": username,
+            "email": email,
+            "firstName": first_name,
+            "lastName": last_name,
+            "first": first if first else None,
+            "max": max_results,
         }
         params = {k: v for k, v in param_mapping.items() if v is not None}
 
         if exact:
-            params['exact'] = 'true'
+            params["exact"] = "true"
 
         try:
-            response = self._make_request('GET', url, params=params)
+            response = self._make_request("GET", url, params=params)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -440,16 +457,16 @@ class KeycloakAdminClient:
 
         params = {}
         if search:
-            params['search'] = search
+            params["search"] = search
         if exact:
-            params['exact'] = 'true'
+            params["exact"] = "true"
         if first:
-            params['first'] = first
+            params["first"] = first
         if max_results:
-            params['max'] = max_results
+            params["max"] = max_results
 
         try:
-            response = self._make_request('GET', url, params=params)
+            response = self._make_request("GET", url, params=params)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -468,7 +485,7 @@ class KeycloakAdminClient:
         url = f"{self._get_admin_url()}/groups/{group_id}"
 
         try:
-            response = self._make_request('GET', url)
+            response = self._make_request("GET", url)
             if response.status_code == 404:
                 return None
             response.raise_for_status()
@@ -490,7 +507,7 @@ class KeycloakAdminClient:
         groups = self.search_groups(search=group_name, exact=exact, max_results=10)
         for group in groups:
             if exact:
-                if group.get('name') == group_name:
+                if group.get("name") == group_name:
                     return group
             else:
                 return group
@@ -508,7 +525,7 @@ class KeycloakAdminClient:
         url = f"{self._get_admin_url()}/users/{user_id}/groups"
 
         try:
-            response = self._make_request('GET', url)
+            response = self._make_request("GET", url)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -525,26 +542,26 @@ class KeycloakAdminClient:
             The ID of the created group, or None if creation failed.
         """
         url = f"{self._get_admin_url()}/groups"
-        group_data = {'name': name}
+        group_data = {"name": name}
 
         try:
-            response = self._make_request('POST', url, json=group_data)
+            response = self._make_request("POST", url, json=group_data)
 
             if response.status_code == 201:
                 # Group created - extract ID from Location header
-                location = response.headers.get('Location', '')
-                group_id = location.rsplit('/', 1)[-1] if location else None
+                location = response.headers.get("Location", "")
+                group_id = location.rsplit("/", 1)[-1] if location else None
                 if group_id:
                     logger.info(f"Created Keycloak group {name} with ID {group_id}")
                     return group_id
                 # Fallback: get group by name
                 group = self.get_group_by_name(name, exact=True)
-                return group['id'] if group else None
+                return group["id"] if group else None
 
             elif response.status_code == 409:
                 logger.warning(f"Group {name} already exists in Keycloak")
                 group = self.get_group_by_name(name, exact=True)
-                return group['id'] if group else None
+                return group["id"] if group else None
 
             else:
                 error_msg = response.text
@@ -567,7 +584,7 @@ class KeycloakAdminClient:
         url = f"{self._get_admin_url()}/groups/{group_id}"
 
         try:
-            response = self._make_request('DELETE', url)
+            response = self._make_request("DELETE", url)
             if response.status_code == 204:
                 logger.info(f"Deleted Keycloak group {group_id}")
                 return True
@@ -591,7 +608,7 @@ class KeycloakAdminClient:
         url = f"{self._get_admin_url()}/users/{user_id}/groups/{group_id}"
 
         try:
-            response = self._make_request('PUT', url)
+            response = self._make_request("PUT", url)
             if response.status_code == 204:
                 logger.info(f"Added user {user_id} to group {group_id}")
                 return True
@@ -617,13 +634,14 @@ class KeycloakAdminClient:
         url = f"{self._get_admin_url()}/users/{user_id}/groups/{group_id}"
 
         try:
-            response = self._make_request('DELETE', url)
+            response = self._make_request("DELETE", url)
             if response.status_code == 204:
                 logger.info(f"Removed user {user_id} from group {group_id}")
                 return True
             else:
                 logger.error(
-                    f"Failed to remove user {user_id} from group {group_id}: {response.text}"
+                    f"Failed to remove user {user_id} from group "
+                    f"{group_id}: {response.text}"
                 )
                 return False
         except requests.exceptions.RequestException as e:
@@ -646,12 +664,12 @@ class KeycloakAdminClient:
 
         params = {}
         if first:
-            params['first'] = first
+            params["first"] = first
         if max_results:
-            params['max'] = max_results
+            params["max"] = max_results
 
         try:
-            response = self._make_request('GET', url, params=params)
+            response = self._make_request("GET", url, params=params)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
@@ -661,21 +679,25 @@ class KeycloakAdminClient:
 
 class KeycloakError(Exception):
     """Base exception for Keycloak operations."""
+
     pass
 
 
 class KeycloakAuthenticationError(KeycloakError):
     """Raised when authentication with Keycloak fails."""
+
     pass
 
 
 class KeycloakUserCreationError(KeycloakError):
     """Raised when user creation fails."""
+
     pass
 
 
 class KeycloakUserExistsError(KeycloakUserCreationError):
     """Raised when trying to create a user that already exists."""
+
     pass
 
 
@@ -738,9 +760,9 @@ def get_keycloak_plugin():
         portal = api.portal.get()
         if not portal:
             return None
-        acl_users = getToolByName(portal, 'acl_users')
+        acl_users = getToolByName(portal, "acl_users")
 
-        for plugin_id, plugin in acl_users.objectItems():
+        for _plugin_id, plugin in acl_users.objectItems():
             if IKeycloakPlugin.providedBy(plugin):
                 return plugin
 
@@ -749,5 +771,3 @@ def get_keycloak_plugin():
     except Exception as e:
         logger.error(f"Error getting KeycloakPlugin: {e}")
         return None
-
-

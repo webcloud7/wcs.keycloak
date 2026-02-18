@@ -1,42 +1,180 @@
-[build-system]
-requires = ["setuptools>=68.2,<80", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "wcs.keycloak"
-version = "1.0.0a1"
+dynamic = ["version"]
 description = "Keycloak integration for Plone 6"
 readme = "README.md"
-license = "GPL-2.0"
+license = "GPL-2.0-only"
 requires-python = ">=3.11"
 authors = [
     {name = "webcloud7", email = "info@webcloud7.ch"},
 ]
+keywords = [
+    "CMS",
+    "Keycloak",
+    "Plone",
+    "Python",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "Framework :: Plone :: 6.0",
+    "Environment :: Web Environment",
+    "Framework :: Plone",
+    "Framework :: Plone :: 6.1",
+    "Framework :: Plone :: Addon",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
+    "BTrees",
     "plone.api",
     "plone.protect",
-    "requests",
     "Products.PluggableAuthService",
-    "BTrees",
+    "requests",
 ]
 
 [project.optional-dependencies]
 test = [
     "beautifulsoup4",
+    "Paste",
     "plone.app.testing",
     "plone.restapi",
     "plone.testing",
     "requests",
+    "zope.testrunner",
+]
+release = [
+    "zest.releaser[recommended]",
+    "zestreleaser.towncrier",
+    "zest.pocompile",
 ]
 
-[project.entry-points."z3c.autoinclude.plugin"]
+[project.urls]
+Homepage = "https://github.com/webcloud7/wcs.keycloak"
+PyPI = "https://pypi.org/project/wcs.keycloak"
+Source = "https://github.com/webcloud7/wcs.keycloak"
+Tracker = "https://github.com/webcloud7/wcs.keycloak/issues"
+
+[project.entry-points."plone.autoinclude.plugin"]
 target = "plone"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.uv]
+managed = false
+
+[tool.hatch.version]
+path = "src/wcs/keycloak/__init__.py"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+strict-naming = true
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wcs"]
+
+[tool.towncrier]
+directory = "news/"
+filename = "CHANGELOG.md"
+start_string = "<!-- towncrier release notes start -->\n"
+title_format = "## {version} ({project_date})"
+template = "news/.changelog_template.jinja"
+issue_format = "[#{issue}](https://github.com/webcloud7/wcs.keycloak/issues/{issue})"
+underlines = ["", "", ""]
+
+[[tool.towncrier.type]]
+directory = "breaking"
+name = "Breaking changes:"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "New features:"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug fixes:"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "internal"
+name = "Internal:"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "documentation"
+name = "Documentation:"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "tests"
+name = "Tests"
+showcontent = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+fix = true
+lint.select = [
+    # flake8-2020
+    "YTT",
+    # flake8-bandit
+    "S",
+    # flake8-bugbear
+    "B",
+    # flake8-builtins
+    "A",
+    # flake8-comprehensions
+    "C4",
+    # flake8-debugger
+    "T10",
+    # flake8-simplify
+    "SIM",
+    # mccabe
+    "C90",
+    # pycodestyle
+    "E", "W",
+    # pyflakes
+    "F",
+    # pygrep-hooks
+    "PGH",
+    # pyupgrade
+    "UP",
+    # ruff
+    "RUF",
+]
+lint.ignore = [
+    # DoNotAssignLambda
+    "E731",
+    # Shadowing builtins (PAS interface requires `id` parameter)
+    "A002",
+    # McCabe complexity (PAS methods are inherently complex)
+    "C901",
+]
+
+[tool.ruff.lint.isort]
+case-sensitive = false
+no-sections = true
+force-single-line = true
+from-first = true
+lines-after-imports = 2
+lines-between-types = 1
+order-by-type = false
+
+[tool.ruff.format]
+preview = true
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501", "RUF001", "S101", "S105", "S106", "S113"]
+"src/wcs/keycloak/tests/*" = ["E501", "RUF001", "S101", "S105", "S106", "S113"]
+"src/wcs/keycloak/testing/*" = ["E501", "RUF001", "S101", "S105", "S106", "S113", "RUF012"]
+
+[tool.zest-releaser]
+python-file-with-version = "src/wcs/keycloak/__init__.py"

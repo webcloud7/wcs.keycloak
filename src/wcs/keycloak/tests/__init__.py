@@ -1,4 +1,5 @@
 """Test infrastructure for wcs.keycloak."""
+
 from plone.app.testing import FunctionalTesting as PloneFunctionalTesting
 from plone.app.testing import PLONE_FIXTURE
 from plone.app.testing import PloneSandboxLayer
@@ -11,6 +12,7 @@ from plone.testing.zope import WSGI_SERVER_FIXTURE
 from unittest import TestCase
 from wcs.keycloak.testing.keycloak_layer import KEYCLOAK_FIXTURE
 from zope.configuration import xmlconfig
+
 import transaction
 
 
@@ -28,17 +30,17 @@ class KeycloakLayer(PloneSandboxLayer):
             '  <include package="plone.autoinclude" file="meta.zcml" />'
             '  <autoIncludePlugins target="plone" />'
             '  <autoIncludePluginsOverrides target="plone" />'
-            '</configure>',
+            "</configure>",
             context=configurationContext,
         )
 
-        installProduct(app, 'wcs.keycloak')
+        installProduct(app, "wcs.keycloak")
 
     def setUpPloneSite(self, portal):
         """Set up Plone site."""
         super().setUpPloneSite(portal)
         setRoles(portal, TEST_USER_ID, ["Manager"])
-        self.applyProfile(portal, 'wcs.keycloak:default')
+        self.applyProfile(portal, "wcs.keycloak:default")
         transaction.commit()
         setRoles(portal, TEST_USER_ID, [])
 
@@ -50,7 +52,7 @@ KEYCLOAK_FUNCTIONAL_TESTING = PloneFunctionalTesting(
         KEYCLOAK_PLONE_FIXTURE,
         WSGI_SERVER_FIXTURE,
     ),
-    name='wcs.keycloak:Functional',
+    name="wcs.keycloak:Functional",
 )
 
 
@@ -62,14 +64,14 @@ class FunctionalTesting(TestCase):
     @property
     def api_headers(self):
         """Get headers for JSON API requests."""
-        return {'Accept': 'application/json'}
+        return {"Accept": "application/json"}
 
     @property
     def api_post_headers(self):
         """Get headers for JSON API POST requests."""
         return {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
+            "Accept": "application/json",
+            "Content-Type": "application/json",
         }
 
     @property
@@ -84,8 +86,8 @@ class FunctionalTesting(TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.portal = self.layer['portal']
-        self.request = self.layer['request']
+        self.portal = self.layer["portal"]
+        self.request = self.layer["request"]
 
     def grant(self, *roles):
         """Grant roles to the test user."""

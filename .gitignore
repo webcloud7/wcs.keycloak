@@ -1,23 +1,48 @@
-# Python
+# python related
+*.egg-info
+*.pyc
+*.pyo
+
+# tools related
 __pycache__/
-*.py[cod]
-*.mo
-*.egg-info/
+.coverage
+.mypy_cache
+.pytest_cache
+.ruff_cache
+/build/
+coverage.xml
+dist/
+docs/_build
+node_modules/
 
-# Virtual environment
+# venv / buildout related
+.eggs/
+.installed.cfg
+.mr.developer.cfg
+.venv/
 bin/
-lib/
+develop-eggs/
+eggs/
+etc/
 include/
+lib/
+lib64
+parts/
 pyvenv.cfg
+var/
 
-# Build / install artifacts
+# mxdev
 .installed.txt
-constraints-mxdev.txt
-requirements-mxdev.txt
-.make-sentinels/
-
-# Plone instance
-instance/
+.lock
+/.mxdev_cache/
+/.make-sentinels/
+/*-mxdev.txt
+/instance/
+/reports/
+/sources/
+/venv/
+constraints*.txt
+requirements*.txt
 
 # IDE
 .vscode/

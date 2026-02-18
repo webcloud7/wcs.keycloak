@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <layers>
-  <layer
-    name="wcs.keycloak"
-    interface="wcs.keycloak.interfaces.IKeycloakLayer"
-    />
+  <layer interface="wcs.keycloak.interfaces.IKeycloakLayer"
+         name="wcs.keycloak"
+  />
 </layers>

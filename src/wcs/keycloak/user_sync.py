@@ -1,7 +1,9 @@
 """Keycloak user synchronization to plugin storage."""
+
 from wcs.keycloak.client import get_client_and_plugin
 from wcs.keycloak.client import is_sync_enabled
 from wcs.keycloak.plugin import extract_user_storage_data
+
 import logging
 
 
@@ -17,7 +19,7 @@ def is_user_sync_enabled():
     Returns:
         True if Keycloak is configured and user sync is enabled, False otherwise.
     """
-    return is_sync_enabled('sync_users')
+    return is_sync_enabled("sync_users")
 
 
 def _remove_stale_users(user_storage, keycloak_usernames):
@@ -30,7 +32,7 @@ def _remove_stale_users(user_storage, keycloak_usernames):
     Returns:
         Dict with removal statistics: users_removed, errors.
     """
-    stats = {'users_removed': 0, 'errors': 0}
+    stats = {"users_removed": 0, "errors": 0}
 
     stored_usernames = set(user_storage.keys())
     users_to_remove = stored_usernames - keycloak_usernames
@@ -38,11 +40,11 @@ def _remove_stale_users(user_storage, keycloak_usernames):
     for username in users_to_remove:
         try:
             del user_storage[username]
-            stats['users_removed'] += 1
+            stats["users_removed"] += 1
             logger.info(f"Removed deleted user from storage: {username}")
         except Exception as e:
             logger.error(f"Error removing user {username} from storage: {e}")
-            stats['errors'] += 1
+            stats["errors"] += 1
 
     return stats
 
@@ -57,23 +59,23 @@ def cleanup_deleted_users():
     Returns:
         Dict with cleanup statistics: users_cleaned, errors.
     """
-    stats = {'users_cleaned': 0, 'errors': 0}
+    stats = {"users_cleaned": 0, "errors": 0}
 
-    client, plugin = get_client_and_plugin('user cleanup')
+    client, plugin = get_client_and_plugin("user cleanup")
     if not client:
         return stats
 
     try:
         keycloak_users = client.search_users(max_results=MAX_SYNC_USERS)
         keycloak_usernames = {
-            user.get('username') for user in keycloak_users if user.get('username')
+            user.get("username") for user in keycloak_users if user.get("username")
         }
 
         user_storage = plugin._get_user_storage()
         removal_stats = _remove_stale_users(user_storage, keycloak_usernames)
 
-        stats['users_cleaned'] = removal_stats['users_removed']
-        stats['errors'] = removal_stats['errors']
+        stats["users_cleaned"] = removal_stats["users_removed"]
+        stats["errors"] = removal_stats["errors"]
 
         logger.info(
             f"User cleanup complete: {stats['users_cleaned']} users removed, "
@@ -82,7 +84,7 @@ def cleanup_deleted_users():
 
     except Exception as e:
         logger.error(f"Error during user cleanup: {e}")
-        stats['errors'] += 1
+        stats["errors"] += 1
 
     return stats
 
@@ -96,9 +98,9 @@ def sync_all_users():
     Returns:
         Dict with sync statistics: users_synced, users_removed, errors.
     """
-    stats = {'users_synced': 0, 'users_removed': 0, 'errors': 0}
+    stats = {"users_synced": 0, "users_removed": 0, "errors": 0}
 
-    client, plugin = get_client_and_plugin('user sync')
+    client, plugin = get_client_and_plugin("user sync")
     if not client:
         return stats
 
@@ -109,7 +111,7 @@ def sync_all_users():
         user_storage = plugin._get_user_storage()
 
         for user in keycloak_users:
-            username = user.get('username', '')
+            username = user.get("username", "")
             if not username:
                 continue
 
@@ -117,15 +119,15 @@ def sync_all_users():
 
             try:
                 user_storage[username] = extract_user_storage_data(user)
-                stats['users_synced'] += 1
+                stats["users_synced"] += 1
             except Exception as e:
                 logger.error(f"Error syncing user {username}: {e}")
-                stats['errors'] += 1
+                stats["errors"] += 1
 
         # Remove users from storage that no longer exist in Keycloak
         removal_stats = _remove_stale_users(user_storage, keycloak_usernames)
-        stats['users_removed'] = removal_stats['users_removed']
-        stats['errors'] += removal_stats['errors']
+        stats["users_removed"] = removal_stats["users_removed"]
+        stats["errors"] += removal_stats["errors"]
 
         logger.info(
             f"User sync complete: {stats['users_synced']} synced, "
@@ -134,6 +136,6 @@ def sync_all_users():
 
     except Exception as e:
         logger.error(f"Error during user sync: {e}")
-        stats['errors'] += 1
+        stats["errors"] += 1
 
     return stats

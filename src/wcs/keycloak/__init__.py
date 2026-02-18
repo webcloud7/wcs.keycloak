@@ -1,4 +1,7 @@
 """Keycloak integration for Plone 6."""
+
+__version__ = "1.0.0a1"
+
 from AccessControl.Permissions import manage_users
 from Products.PluggableAuthService.PluggableAuthService import registerMultiPlugin
 from zope.i18nmessageid import MessageFactory

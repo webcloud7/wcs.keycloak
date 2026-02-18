@@ -1,17 +1,19 @@
 """Keycloak group and membership synchronization to Plone."""
+
 from plone import api
 from wcs.keycloak.client import get_client_and_plugin
 from wcs.keycloak.client import is_sync_enabled
 from wcs.keycloak.user_sync import cleanup_deleted_users
 from wcs.keycloak.user_sync import is_user_sync_enabled
 from wcs.keycloak.user_sync import sync_all_users
+
 import logging
 
 
 logger = logging.getLogger(__name__)
 
 # Prefix for synced groups to identify them as Keycloak-managed
-KEYCLOAK_GROUP_PREFIX = 'keycloak_'
+KEYCLOAK_GROUP_PREFIX = "keycloak_"
 
 # Maximum results to fetch from Keycloak during group/membership sync
 MAX_SYNC_GROUPS = 1000
@@ -24,7 +26,7 @@ def is_group_sync_enabled():
     Returns:
         True if Keycloak is configured and sync is enabled, False otherwise.
     """
-    return is_sync_enabled('sync_groups')
+    return is_sync_enabled("sync_groups")
 
 
 def get_plone_group_id(keycloak_group_name):
@@ -51,7 +53,7 @@ def get_keycloak_group_name(plone_group_id):
         The Keycloak group name if this is a synced group, None otherwise.
     """
     if plone_group_id.startswith(KEYCLOAK_GROUP_PREFIX):
-        return plone_group_id[len(KEYCLOAK_GROUP_PREFIX):]
+        return plone_group_id[len(KEYCLOAK_GROUP_PREFIX) :]
     return None
 
 
@@ -76,21 +78,21 @@ def sync_all_groups():
     Returns:
         Dict with sync statistics: created, updated, deleted, errors.
     """
-    stats = {'created': 0, 'updated': 0, 'deleted': 0, 'errors': 0}
+    stats = {"created": 0, "updated": 0, "deleted": 0, "errors": 0}
 
-    client, plugin = get_client_and_plugin('group sync')
+    client, _plugin = get_client_and_plugin("group sync")
     if not client:
         return stats
 
     try:
         # Fetch all groups from Keycloak
         keycloak_groups = client.search_groups(max_results=MAX_SYNC_GROUPS)
-        keycloak_group_names = {g['name'] for g in keycloak_groups if g.get('name')}
+        keycloak_group_names = {g["name"] for g in keycloak_groups if g.get("name")}
 
         logger.info(f"Found {len(keycloak_group_names)} groups in Keycloak")
 
         # Get all existing synced Plone groups
-        portal_groups = api.portal.get_tool('portal_groups')
+        portal_groups = api.portal.get_tool("portal_groups")
         existing_plone_groups = portal_groups.listGroupIds()
         synced_plone_groups = {
             gid for gid in existing_plone_groups if is_synced_group(gid)
@@ -98,7 +100,7 @@ def sync_all_groups():
 
         # Create or update groups from Keycloak
         for kc_group in keycloak_groups:
-            group_name = kc_group.get('name')
+            group_name = kc_group.get("name")
             if not group_name:
                 continue
 
@@ -108,10 +110,10 @@ def sync_all_groups():
                 existing_group = api.group.get(groupname=plone_group_id)
                 if existing_group:
                     # Group exists - update title if needed
-                    current_title = existing_group.getProperty('title', '')
+                    current_title = existing_group.getProperty("title", "")
                     if current_title != group_name:
-                        existing_group.setGroupProperties({'title': group_name})
-                        stats['updated'] += 1
+                        existing_group.setGroupProperties({"title": group_name})
+                        stats["updated"] += 1
                         logger.debug(f"Updated group: {plone_group_id}")
                 else:
                     # Create new group
@@ -120,27 +122,25 @@ def sync_all_groups():
                         title=group_name,
                         description=f"Synced from Keycloak group: {group_name}",
                     )
-                    stats['created'] += 1
+                    stats["created"] += 1
                     logger.info(f"Created group: {plone_group_id}")
 
             except Exception as e:
                 logger.error(f"Error syncing group {group_name}: {e}")
-                stats['errors'] += 1
+                stats["errors"] += 1
 
         # Remove groups that no longer exist in Keycloak
-        expected_plone_ids = {
-            get_plone_group_id(name) for name in keycloak_group_names
-        }
+        expected_plone_ids = {get_plone_group_id(name) for name in keycloak_group_names}
         groups_to_delete = synced_plone_groups - expected_plone_ids
 
         for group_id in groups_to_delete:
             try:
                 api.group.delete(groupname=group_id)
-                stats['deleted'] += 1
+                stats["deleted"] += 1
                 logger.info(f"Deleted group: {group_id}")
             except Exception as e:
                 logger.error(f"Error deleting group {group_id}: {e}")
-                stats['errors'] += 1
+                stats["errors"] += 1
 
         logger.info(
             f"Group sync complete: created={stats['created']}, "
@@ -150,7 +150,7 @@ def sync_all_groups():
 
     except Exception as e:
         logger.error(f"Error during group sync: {e}")
-        stats['errors'] += 1
+        stats["errors"] += 1
 
     return stats
 
@@ -164,9 +164,9 @@ def sync_all_memberships():
     Returns:
         Dict with sync statistics: users_added, users_removed, errors.
     """
-    stats = {'users_added': 0, 'users_removed': 0, 'errors': 0}
+    stats = {"users_added": 0, "users_removed": 0, "errors": 0}
 
-    client, plugin = get_client_and_plugin('membership sync')
+    client, _plugin = get_client_and_plugin("membership sync")
     if not client:
         return stats
 
@@ -175,8 +175,8 @@ def sync_all_memberships():
         keycloak_groups = client.search_groups(max_results=MAX_SYNC_GROUPS)
 
         for kc_group in keycloak_groups:
-            group_name = kc_group.get('name')
-            group_uuid = kc_group.get('id')
+            group_name = kc_group.get("name")
+            group_uuid = kc_group.get("id")
             if not group_name or not group_uuid:
                 continue
 
@@ -189,9 +189,11 @@ def sync_all_memberships():
 
             try:
                 # Get members from Keycloak
-                kc_members = client.get_group_members(group_uuid, max_results=MAX_SYNC_GROUP_MEMBERS)
+                kc_members = client.get_group_members(
+                    group_uuid, max_results=MAX_SYNC_GROUP_MEMBERS
+                )
                 kc_usernames = {
-                    m.get('username') for m in kc_members if m.get('username')
+                    m.get("username") for m in kc_members if m.get("username")
                 }
 
                 # Get current Plone group members
@@ -202,7 +204,7 @@ def sync_all_memberships():
                 for username in to_add:
                     try:
                         api.group.add_user(groupname=plone_group_id, username=username)
-                        stats['users_added'] += 1
+                        stats["users_added"] += 1
                         logger.debug(f"Added {username} to {plone_group_id}")
                     except Exception as e:
                         logger.warning(
@@ -213,8 +215,10 @@ def sync_all_memberships():
                 to_remove = current_members - kc_usernames
                 for username in to_remove:
                     try:
-                        api.group.remove_user(groupname=plone_group_id, username=username)
-                        stats['users_removed'] += 1
+                        api.group.remove_user(
+                            groupname=plone_group_id, username=username
+                        )
+                        stats["users_removed"] += 1
                         logger.debug(f"Removed {username} from {plone_group_id}")
                     except Exception as e:
                         logger.warning(
@@ -223,7 +227,7 @@ def sync_all_memberships():
 
             except Exception as e:
                 logger.error(f"Error syncing membership for {plone_group_id}: {e}")
-                stats['errors'] += 1
+                stats["errors"] += 1
 
         logger.info(
             f"Membership sync complete: added={stats['users_added']}, "
@@ -232,7 +236,7 @@ def sync_all_memberships():
 
     except Exception as e:
         logger.error(f"Error during membership sync: {e}")
-        stats['errors'] += 1
+        stats["errors"] += 1
 
     return stats
 
@@ -246,9 +250,9 @@ def sync_user_memberships(username):
     Returns:
         Dict with sync statistics: groups_added, groups_removed, errors.
     """
-    stats = {'groups_added': 0, 'groups_removed': 0, 'errors': 0}
+    stats = {"groups_added": 0, "groups_removed": 0, "errors": 0}
 
-    client, plugin = get_client_and_plugin('user membership sync')
+    client, _plugin = get_client_and_plugin("user membership sync")
     if not client:
         return stats
 
@@ -261,11 +265,11 @@ def sync_user_memberships(username):
 
         # Get groups the user belongs to in Keycloak
         kc_groups = client.get_groups_for_user(user_id)
-        kc_group_names = {g.get('name') for g in kc_groups if g.get('name')}
+        kc_group_names = {g.get("name") for g in kc_groups if g.get("name")}
         expected_plone_groups = {get_plone_group_id(name) for name in kc_group_names}
 
         # Get current Plone group memberships (only synced groups)
-        portal_groups = api.portal.get_tool('portal_groups')
+        portal_groups = api.portal.get_tool("portal_groups")
         all_groups = portal_groups.listGroupIds()
         current_synced_memberships = set()
 
@@ -283,22 +287,22 @@ def sync_user_memberships(username):
             if api.group.get(groupname=group_id):
                 try:
                     api.group.add_user(groupname=group_id, username=username)
-                    stats['groups_added'] += 1
+                    stats["groups_added"] += 1
                     logger.debug(f"Added {username} to {group_id}")
                 except Exception as e:
                     logger.warning(f"Could not add {username} to {group_id}: {e}")
-                    stats['errors'] += 1
+                    stats["errors"] += 1
 
         # Remove user from groups they're no longer a member of in Keycloak
         to_remove = current_synced_memberships - expected_plone_groups
         for group_id in to_remove:
             try:
                 api.group.remove_user(groupname=group_id, username=username)
-                stats['groups_removed'] += 1
+                stats["groups_removed"] += 1
                 logger.debug(f"Removed {username} from {group_id}")
             except Exception as e:
                 logger.warning(f"Could not remove {username} from {group_id}: {e}")
-                stats['errors'] += 1
+                stats["errors"] += 1
 
         logger.info(
             f"User {username} membership sync: added={stats['groups_added']}, "
@@ -307,7 +311,7 @@ def sync_user_memberships(username):
 
     except Exception as e:
         logger.error(f"Error syncing memberships for user {username}: {e}")
-        stats['errors'] += 1
+        stats["errors"] += 1
 
     return stats
 
@@ -328,16 +332,14 @@ def sync_groups_and_memberships():
     cleanup_stats = cleanup_deleted_users()
 
     return {
-        'groups_created': group_stats['created'],
-        'groups_updated': group_stats['updated'],
-        'groups_deleted': group_stats['deleted'],
-        'users_added': membership_stats['users_added'],
-        'users_removed': membership_stats['users_removed'],
-        'users_cleaned': cleanup_stats['users_cleaned'],
-        'errors': (
-            group_stats['errors']
-            + membership_stats['errors']
-            + cleanup_stats['errors']
+        "groups_created": group_stats["created"],
+        "groups_updated": group_stats["updated"],
+        "groups_deleted": group_stats["deleted"],
+        "users_added": membership_stats["users_added"],
+        "users_removed": membership_stats["users_removed"],
+        "users_cleaned": cleanup_stats["users_cleaned"],
+        "errors": (
+            group_stats["errors"] + membership_stats["errors"] + cleanup_stats["errors"]
         ),
     }
 
@@ -358,9 +360,9 @@ def sync_all():
 
     if is_user_sync_enabled():
         user_sync_stats = sync_all_users()
-        result['users_synced'] = user_sync_stats['users_synced']
-        result['users_sync_removed'] = user_sync_stats['users_removed']
-        result['errors'] += user_sync_stats['errors']
+        result["users_synced"] = user_sync_stats["users_synced"]
+        result["users_sync_removed"] = user_sync_stats["users_removed"]
+        result["errors"] += user_sync_stats["errors"]
 
     return result
 
