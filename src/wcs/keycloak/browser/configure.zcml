@@ -24,4 +24,22 @@
         permission="cmf.ManagePortal"
         />
 
+    <browser:page
+        name="usergroup-userprefs"
+        for="plone.base.interfaces.IPloneSiteRoot"
+        class=".user_management.KeycloakUsersOverviewControlPanel"
+        template="templates/usergroups_usersoverview.pt"
+        permission="plone.app.controlpanel.UsersAndGroups"
+        layer="wcs.keycloak.interfaces.IKeycloakLayer"
+        />
+
+    <browser:page
+        name="usergroup-groupprefs"
+        for="plone.base.interfaces.IPloneSiteRoot"
+        class=".user_management.KeycloakGroupsOverviewControlPanel"
+        template="templates/usergroups_groupsoverview.pt"
+        permission="plone.app.controlpanel.UsersAndGroups"
+        layer="wcs.keycloak.interfaces.IKeycloakLayer"
+        />
+
 </configure>

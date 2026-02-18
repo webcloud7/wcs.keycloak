@@ -38,6 +38,7 @@ class KeycloakLayer(PloneSandboxLayer):
         """Set up Plone site."""
         super().setUpPloneSite(portal)
         setRoles(portal, TEST_USER_ID, ["Manager"])
+        self.applyProfile(portal, 'wcs.keycloak:default')
         transaction.commit()
         setRoles(portal, TEST_USER_ID, [])
 
