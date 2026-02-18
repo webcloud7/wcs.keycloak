@@ -16,7 +16,6 @@ Classes:
 
 Functions:
     get_keycloak_plugin(): Get the KeycloakPlugin instance from PAS
-    get_keycloak_client(): Get a configured KeycloakAdminClient from plugin
 
 Authentication:
     The client uses client_credentials grant type to obtain an access token.
@@ -67,13 +66,15 @@ Example:
             last_name='User'
         )
 
-    Using the helper function (requires configured plugin)::
+    Using the plugin method (requires configured plugin)::
 
-        from wcs.keycloak.client import get_keycloak_client
+        from wcs.keycloak.client import get_keycloak_plugin
 
-        client = get_keycloak_client()
-        if client:
-            users = client.search_users(email='test@example.com')
+        plugin = get_keycloak_plugin()
+        if plugin:
+            client = plugin.get_client()
+            if client:
+                users = client.search_users(email='test@example.com')
 
 Constants:
     DEFAULT_EMAIL_LINK_LIFESPAN: Default validity period for email links
@@ -788,8 +789,7 @@ def is_sync_enabled(property_name):
         if not getattr(plugin, property_name, False):
             return False
 
-        client = get_keycloak_client()
-        return client is not None
+        return plugin.get_client() is not None
     except Exception:
         return False
 
@@ -820,33 +820,3 @@ def get_keycloak_plugin():
         return None
 
 
-def get_keycloak_client():
-    """Get a configured Keycloak admin client from plugin properties.
-
-    Returns:
-        Configured KeycloakAdminClient or None if not configured.
-    """
-    try:
-        plugin = get_keycloak_plugin()
-        if not plugin:
-            logger.debug("KeycloakPlugin not found")
-            return None
-
-        server_url = getattr(plugin, 'server_url', '')
-        realm = getattr(plugin, 'realm', '')
-        client_id = getattr(plugin, 'admin_client_id', '')
-        client_secret = getattr(plugin, 'admin_client_secret', '')
-
-        if not all([server_url, realm, client_id, client_secret]):
-            logger.warning("Keycloak admin client not fully configured")
-            return None
-
-        return KeycloakAdminClient(
-            server_url=server_url,
-            realm=realm,
-            client_id=client_id,
-            client_secret=client_secret,
-        )
-    except Exception as e:
-        logger.error(f"Failed to create Keycloak admin client: {e}")
-        return None

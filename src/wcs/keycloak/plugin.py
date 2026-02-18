@@ -15,7 +15,7 @@ from Products.PluggableAuthService.interfaces.plugins import IUserEnumerationPlu
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from wcs.keycloak.client import DEFAULT_EMAIL_LINK_LIFESPAN
-from wcs.keycloak.client import get_keycloak_client
+from wcs.keycloak.client import KeycloakAdminClient
 from wcs.keycloak.client import KeycloakError
 from wcs.keycloak.client import KeycloakUserExistsError
 from wcs.keycloak.interfaces import IKeycloakPlugin
@@ -232,6 +232,41 @@ class KeycloakPlugin(BasePlugin):
         safeWrite(self._user_storage)
         return self._user_storage
 
+    def get_client(self):
+        """Get a configured KeycloakAdminClient, cached per thread.
+
+        The client is stored as a volatile attribute (_v_client) so it
+        persists per thread until the ZODB object is ghostified. The
+        cache is invalidated when the connection config changes.
+
+        Returns:
+            Configured KeycloakAdminClient or None if not configured.
+        """
+        config = (
+            self.server_url,
+            self.realm,
+            self.admin_client_id,
+            self.admin_client_secret,
+        )
+
+        if not all(config):
+            self._v_client = None
+            self._v_client_config = None
+            return None
+
+        cached_config = getattr(self, '_v_client_config', None)
+        if cached_config == config and getattr(self, '_v_client', None) is not None:
+            return self._v_client
+
+        self._v_client = KeycloakAdminClient(
+            server_url=self.server_url,
+            realm=self.realm,
+            client_id=self.admin_client_id,
+            client_secret=self.admin_client_secret,
+        )
+        self._v_client_config = config
+        return self._v_client
+
     def _lookup_user_in_storage(self, username):
         """Look up a user in persistent storage and return PAS-formatted data.
 
@@ -367,7 +402,7 @@ class KeycloakPlugin(BasePlugin):
         email, first_name, last_name = self._extract_user_data_from_request(login)
 
         # Get Keycloak client
-        client = get_keycloak_client()
+        client = self.get_client()
         if not client:
             logger.error("Keycloak client not configured, cannot create user")
             return False
@@ -454,7 +489,7 @@ class KeycloakPlugin(BasePlugin):
             if stored_result:
                 return stored_result
 
-        client = get_keycloak_client()
+        client = self.get_client()
         if not client:
             logger.debug("Keycloak client not configured, skipping enumeration")
             return ()
@@ -557,7 +592,7 @@ class KeycloakPlugin(BasePlugin):
 
         if user_data is None:
             # Not in storage, fetch from Keycloak
-            client = get_keycloak_client()
+            client = self.get_client()
             if not client:
                 logger.debug("Keycloak client not configured")
                 return {}

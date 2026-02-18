@@ -9,7 +9,6 @@ This module contains tests for the core Keycloak client functionality:
 - Error handling
 """
 from plone import api
-from wcs.keycloak.client import get_keycloak_client
 from wcs.keycloak.client import KeycloakAdminClient
 from wcs.keycloak.client import KeycloakAuthenticationError
 from wcs.keycloak.client import KeycloakUserCreationError
@@ -568,8 +567,8 @@ class TestKeycloakErrors(FunctionalTesting):
             )
 
 
-class TestGetKeycloakClient(FunctionalTesting):
-    """Tests for the get_keycloak_client factory function."""
+class TestPluginGetClient(FunctionalTesting):
+    """Tests for the KeycloakPlugin.get_client() method."""
 
     def setUp(self):
         super().setUp()
@@ -592,6 +591,7 @@ class TestGetKeycloakClient(FunctionalTesting):
         plugin.admin_client_id = admin_client_id
         plugin.admin_client_secret = admin_client_secret
         transaction.commit()
+        return plugin
 
     def _remove_keycloak_plugin(self):
         acl_users = api.portal.get_tool('acl_users')
@@ -599,36 +599,64 @@ class TestGetKeycloakClient(FunctionalTesting):
             acl_users.manage_delObjects(['keycloak'])
             transaction.commit()
 
-    def test_get_client_returns_none_without_plugin(self):
-        self._remove_keycloak_plugin()
-
-        client = get_keycloak_client()
-
-        self.assertIsNone(client)
-
-    def test_get_client_not_configured(self):
-        self._setup_keycloak_plugin(
+    def test_get_client_returns_none_when_not_configured(self):
+        plugin = self._setup_keycloak_plugin(
             server_url='',
             realm='',
             admin_client_id='',
             admin_client_secret=''
         )
 
-        client = get_keycloak_client()
+        self.assertIsNone(
+            plugin.get_client(),
+            'get_client() should return None when not configured',
+        )
 
-        self.assertIsNone(client)
-
-    def test_get_client_configured(self):
-        self._setup_keycloak_plugin(
+    def test_get_client_returns_client_when_configured(self):
+        plugin = self._setup_keycloak_plugin(
             server_url='https://keycloak.example.com',
             realm='test-realm',
             admin_client_id='admin-cli',
             admin_client_secret='secret123'
         )
 
-        client = get_keycloak_client()
+        client = plugin.get_client()
 
-        self.assertIsNotNone(client)
+        self.assertIsNotNone(client, 'get_client() should return a client when configured')
         self.assertIsInstance(client, KeycloakAdminClient)
         self.assertEqual(client.server_url, 'https://keycloak.example.com')
         self.assertEqual(client.realm, 'test-realm')
+
+    def test_get_client_returns_cached_instance(self):
+        plugin = self._setup_keycloak_plugin(
+            server_url='https://keycloak.example.com',
+            realm='test-realm',
+            admin_client_id='admin-cli',
+            admin_client_secret='secret123'
+        )
+
+        client1 = plugin.get_client()
+        client2 = plugin.get_client()
+
+        self.assertIs(
+            client1, client2,
+            'get_client() should return the same cached instance',
+        )
+
+    def test_get_client_invalidates_cache_on_config_change(self):
+        plugin = self._setup_keycloak_plugin(
+            server_url='https://keycloak.example.com',
+            realm='test-realm',
+            admin_client_id='admin-cli',
+            admin_client_secret='secret123'
+        )
+
+        client1 = plugin.get_client()
+        plugin.server_url = 'https://other.example.com'
+        client2 = plugin.get_client()
+
+        self.assertIsNot(
+            client1, client2,
+            'get_client() should return a new instance after config change',
+        )
+        self.assertEqual(client2.server_url, 'https://other.example.com')

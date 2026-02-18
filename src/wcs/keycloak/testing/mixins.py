@@ -21,7 +21,7 @@ KEYCLOAK_REALM = 'saml-test'
 KEYCLOAK_ADMIN_USER = 'admin'
 KEYCLOAK_ADMIN_PASSWORD = 'admin'
 
-# Service account client configuration for tests that need get_keycloak_client()
+# Service account client configuration for tests that need plugin.get_client()
 SERVICE_ACCOUNT_CLIENT_ID = 'plone-test-service-account'
 SERVICE_ACCOUNT_CLIENT_SECRET = 'test-secret-for-enumeration'
 

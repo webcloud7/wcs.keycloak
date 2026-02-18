@@ -12,7 +12,6 @@ Triggers:
     - Manual: @@sync-keycloak-users browser view
     - Combined: Also triggered by @@sync-keycloak when sync_users is enabled
 """
-from wcs.keycloak.client import get_keycloak_client
 from wcs.keycloak.client import get_keycloak_plugin
 from wcs.keycloak.client import is_sync_enabled
 import logging
@@ -39,14 +38,14 @@ def _get_client_and_plugin(operation_name):
     Returns:
         Tuple of (client, plugin) or (None, None) if either is unavailable.
     """
-    client = get_keycloak_client()
-    if not client:
-        logger.warning(f"Keycloak client not configured, skipping {operation_name}")
-        return None, None
-
     plugin = get_keycloak_plugin()
     if not plugin:
         logger.warning(f"KeycloakPlugin not found, skipping {operation_name}")
+        return None, None
+
+    client = plugin.get_client()
+    if not client:
+        logger.warning(f"Keycloak client not configured, skipping {operation_name}")
         return None, None
 
     return client, plugin

@@ -32,7 +32,7 @@ Note:
     in Keycloak.
 """
 from plone import api
-from wcs.keycloak.client import get_keycloak_client
+from wcs.keycloak.client import get_keycloak_plugin
 from wcs.keycloak.client import is_sync_enabled
 from wcs.keycloak.user_sync import cleanup_deleted_users
 from wcs.keycloak.user_sync import is_user_sync_enabled
@@ -106,7 +106,12 @@ def sync_all_groups():
     """
     stats = {'created': 0, 'updated': 0, 'deleted': 0, 'errors': 0}
 
-    client = get_keycloak_client()
+    plugin = get_keycloak_plugin()
+    if not plugin:
+        logger.warning("KeycloakPlugin not found, skipping group sync")
+        return stats
+
+    client = plugin.get_client()
     if not client:
         logger.warning("Keycloak client not configured, skipping group sync")
         return stats
@@ -195,7 +200,12 @@ def sync_all_memberships():
     """
     stats = {'users_added': 0, 'users_removed': 0, 'errors': 0}
 
-    client = get_keycloak_client()
+    plugin = get_keycloak_plugin()
+    if not plugin:
+        logger.warning("KeycloakPlugin not found, skipping membership sync")
+        return stats
+
+    client = plugin.get_client()
     if not client:
         logger.warning("Keycloak client not configured, skipping membership sync")
         return stats
@@ -278,7 +288,12 @@ def sync_user_memberships(username):
     """
     stats = {'groups_added': 0, 'groups_removed': 0, 'errors': 0}
 
-    client = get_keycloak_client()
+    plugin = get_keycloak_plugin()
+    if not plugin:
+        logger.warning("KeycloakPlugin not found, skipping user membership sync")
+        return stats
+
+    client = plugin.get_client()
     if not client:
         logger.warning("Keycloak client not configured, skipping user membership sync")
         return stats
