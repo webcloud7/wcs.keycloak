@@ -44,7 +44,9 @@ var/
 constraints*.txt
 requirements*.txt
 
-# IDE
+# IDE / tools
+.claude/
+.python-version
 .vscode/
 .idea/
 *.swp
