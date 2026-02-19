@@ -27,6 +27,7 @@ jobs:
 
     steps:
       - checkout
+      - run: pip install uv
       - run: make install
       - run: make lint
       - run: make test
