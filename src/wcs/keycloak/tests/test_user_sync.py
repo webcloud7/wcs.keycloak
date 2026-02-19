@@ -1,6 +1,7 @@
 """Tests for Keycloak user synchronization functionality."""
 
 from plone import api
+from Products.PluggableAuthService.interfaces.plugins import IUserEnumerationPlugin
 from wcs.keycloak.testing.mixins import KeycloakPluginTestMixin
 from wcs.keycloak.tests import FunctionalTesting
 from wcs.keycloak.user_sync import is_user_sync_enabled
@@ -20,7 +21,7 @@ class UserSyncTestBase(KeycloakPluginTestMixin, FunctionalTesting):
         self._create_service_account_client()
         self._setup_keycloak_plugin(
             activate_user_adder=True,
-            activate_enumeration=True,
+            activate_enumeration=False,
         )
 
     def tearDown(self):
@@ -64,6 +65,29 @@ class TestUserSyncEnabled(UserSyncTestBase):
         self.assertFalse(
             is_user_sync_enabled(),
             "User sync should not be enabled without a configured client",
+        )
+
+    def test_user_sync_not_enabled_when_enumeration_active(self):
+        plugin = api.portal.get_tool("acl_users")["keycloak"]
+        plugin.sync_users = True
+
+        acl_users = api.portal.get_tool("acl_users")
+        acl_users.plugins.activatePlugin(IUserEnumerationPlugin, "keycloak")
+        transaction.commit()
+
+        self.assertFalse(
+            is_user_sync_enabled(),
+            "User sync should not be enabled when enumeration plugin is active",
+        )
+
+    def test_user_sync_enabled_when_enumeration_not_active(self):
+        plugin = api.portal.get_tool("acl_users")["keycloak"]
+        plugin.sync_users = True
+        transaction.commit()
+
+        self.assertTrue(
+            is_user_sync_enabled(),
+            "User sync should be enabled when enumeration plugin is not active",
         )
 
 
@@ -241,6 +265,24 @@ class TestSyncKeycloakUsersView(UserSyncTestBase):
             0,
             "Should have synced at least one user",
         )
+
+    def test_sync_view_returns_error_when_enumeration_active(self):
+        plugin = api.portal.get_tool("acl_users")["keycloak"]
+        plugin.sync_users = True
+
+        acl_users = api.portal.get_tool("acl_users")
+        acl_users.plugins.activatePlugin(IUserEnumerationPlugin, "keycloak")
+        transaction.commit()
+
+        response = requests.get(
+            f"{self.portal_url}/@@sync-keycloak-users",
+            auth=self.credentials,
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+        data = response.json()
+        self.assertFalse(data["success"])
 
 
 class TestGroupSyncViewIsGroupOnly(UserSyncTestBase):

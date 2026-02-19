@@ -2,6 +2,7 @@
 
 from bs4 import BeautifulSoup
 from plone import api
+from Products.PluggableAuthService.interfaces.plugins import IUserEnumerationPlugin
 from wcs.keycloak.testing.mixins import KEYCLOAK_REALM
 from wcs.keycloak.testing.mixins import KEYCLOAK_SERVER_URL
 from wcs.keycloak.testing.mixins import KeycloakPluginTestMixin
@@ -73,6 +74,9 @@ class TestUsersOverviewKeycloakControls(UserManagementTestBase):
         self._set_registry_controls(True)
         plugin = api.portal.get_tool("acl_users")["keycloak"]
         plugin.sync_users = True
+
+        acl_users = api.portal.get_tool("acl_users")
+        acl_users.plugins.deactivatePlugin(IUserEnumerationPlugin, "keycloak")
         transaction.commit()
 
         soup = self._get_soup("@@usergroup-userprefs")
@@ -93,6 +97,17 @@ class TestUsersOverviewKeycloakControls(UserManagementTestBase):
 
     def test_sync_users_button_hidden_when_controls_disabled(self):
         self._set_registry_controls(False)
+        plugin = api.portal.get_tool("acl_users")["keycloak"]
+        plugin.sync_users = True
+        transaction.commit()
+
+        soup = self._get_soup("@@usergroup-userprefs")
+
+        sync_button = soup.select_one('button[name="form.button.SyncUsers"]')
+        self.assertIsNone(sync_button)
+
+    def test_sync_users_button_hidden_when_enumeration_active(self):
+        self._set_registry_controls(True)
         plugin = api.portal.get_tool("acl_users")["keycloak"]
         plugin.sync_users = True
         transaction.commit()

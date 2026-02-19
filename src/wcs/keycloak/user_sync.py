@@ -2,6 +2,7 @@
 
 from wcs.keycloak.client import get_client_and_plugin
 from wcs.keycloak.client import is_sync_enabled
+from wcs.keycloak.client import is_user_enumeration_active
 from wcs.keycloak.plugin import extract_user_storage_data
 
 import logging
@@ -16,9 +17,17 @@ MAX_SYNC_USERS = 10000
 def is_user_sync_enabled():
     """Check if Keycloak user sync is enabled.
 
+    User sync is only meaningful when the IUserEnumerationPlugin is
+    not active, because active enumeration already discovers users
+    live from Keycloak.
+
     Returns:
-        True if Keycloak is configured and user sync is enabled, False otherwise.
+        True if Keycloak is configured, user sync is enabled, and the
+        enumeration plugin is not active. False otherwise.
     """
+    if is_user_enumeration_active():
+        return False
+
     return is_sync_enabled("sync_users")
 
 

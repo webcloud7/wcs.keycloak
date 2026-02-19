@@ -725,6 +725,27 @@ def is_sync_enabled(property_name):
         return False
 
 
+def is_user_enumeration_active():
+    """Check if the Keycloak plugin is active as a user enumeration plugin.
+
+    Returns:
+        True if the keycloak plugin is listed among active
+        IUserEnumerationPlugin plugins in PAS. False otherwise.
+    """
+    from Products.PluggableAuthService.interfaces.plugins import IUserEnumerationPlugin
+
+    try:
+        plugin = get_keycloak_plugin()
+        if not plugin:
+            return False
+
+        acl_users = api.portal.get_tool("acl_users")
+        active_plugins = list(acl_users.plugins.listPluginIds(IUserEnumerationPlugin))
+        return plugin.getId() in active_plugins
+    except Exception:
+        return False
+
+
 def get_client_and_plugin(operation_name):
     """Get the Keycloak client and plugin, logging warnings if unavailable.
 

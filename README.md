@@ -147,6 +147,8 @@ These options control behavior when users are created through Plone's registrati
 |----------|-------------|---------|
 | **Enable Keycloak User Sync** | Sync users to local storage | `False` |
 
+User sync is only available when IUserEnumerationPlugin is **not** active. When enumeration is active, users are discovered live from Keycloak on every request, making local sync redundant. See [User Synchronization](#user-synchronization) for details.
+
 ### Activating Plugin Interfaces
 
 After adding the plugin, activate the required interfaces in ZMI under `acl_users/plugins/manage_main`:
@@ -202,6 +204,14 @@ curl -u admin:secret https://plone.example.com/@@sync-keycloak-groups
 ## User Synchronization
 
 The user sync feature provides one-way synchronization of users from Keycloak to the plugin's local storage. This ensures that user properties (email, fullname) are available locally without querying Keycloak on every request.
+
+User sync is automatically disabled when IUserEnumerationPlugin is active for the Keycloak plugin. Since active enumeration already discovers users live from Keycloak, storing them locally would be redundant. When enumeration is active:
+
+- The sync button is hidden in the Users control panel
+- The `@@sync-keycloak-users` endpoint returns a 400 response
+- The `@@sync-keycloak` full sync skips the user sync step
+
+To use user sync, keep IUserEnumerationPlugin deactivated and enable the "Enable Keycloak User Sync" property instead.
 
 ### How It Works
 
