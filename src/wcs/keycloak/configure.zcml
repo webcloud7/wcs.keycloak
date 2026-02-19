@@ -7,6 +7,9 @@
     i18n_domain="wcs.keycloak"
     >
 
+  <include package="Products.CMFCore" file="permissions.zcml" />
+  <include package="Products.CMFPlone.controlpanel" file="permissions.zcml" />
+
   <five:registerPackage
       package="."
       initialize=".initialize"
