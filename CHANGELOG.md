@@ -8,3 +8,10 @@
 -->
 
 <!-- towncrier release notes start -->
+
+## 1.0.0a1 (2026-02-19)
+
+
+### New features:
+
+- Initial release. Extracted from 7inOne as a standalone package. [#1](https://github.com/webcloud7/wcs.keycloak/issues/1)
