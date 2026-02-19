@@ -53,9 +53,11 @@ class BaseDockerServiceLayer(Layer):
             self.external_service = False
 
         if not shutil.which("docker"):
-            raise RuntimeError(
-                "You need to have docker installed in order to run those tests"
-            )
+            # No Docker available - service may be starting externally (e.g. CI)
+            self._wait_for_service()
+            self.external_service = True
+            return
+
         if not self.is_docker_container_available():
             self._create_docker_container()
         self.start_service()

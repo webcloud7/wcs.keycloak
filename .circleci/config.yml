@@ -22,7 +22,6 @@ jobs:
     environment:
       PIP_FIND_LINKS: /wheelhouse/
       zope_i18n_compile_mo_files: "true"
-      KEYCLOAK_SERVER_URL: http://localhost:8080
       WSGI_SERVER_PORT: 65035
 
     steps:
