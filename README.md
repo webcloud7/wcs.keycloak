@@ -139,13 +139,13 @@ These options control behavior when users are created through Plone's registrati
 
 | Property | Description | Default |
 |----------|-------------|---------|
-| **Enable Keycloak Group Sync** | Sync groups on user login | `False` |
+| **Enable Keycloak Group Sync** | Sync all groups and the logged-in user's memberships on every login | `False` |
 
 ### User Sync Options
 
 | Property | Description | Default |
 |----------|-------------|---------|
-| **Enable Keycloak User Sync** | Sync users to local storage | `False` |
+| **Enable Keycloak User Sync** | Bulk-copy all Keycloak users (email, fullname) into local storage via sync endpoints | `False` |
 
 User sync is only available when IUserEnumerationPlugin is **not** active. When enumeration is active, users are discovered live from Keycloak on every request, making local sync redundant. See [User Synchronization](#user-synchronization) for details.
 
