@@ -52,7 +52,6 @@ class KeyCloakLayer(BaseDockerServiceLayer):
 
     def _configure(self):
         """Configure admin session with authentication token."""
-        # Import realm
         access_token = requests.post(
             f"{KEYCLOAK_SERVER_URL}/realms/master/protocol/openid-connect/token",
             data={
@@ -116,15 +115,23 @@ class KeyCloakLayer(BaseDockerServiceLayer):
             counter += 1
 
     def _test_connect_service(self):
-        """Test if Keycloak is running and healthy.
+        """Test if Keycloak is running and the admin API is ready.
 
         Returns:
             True if Keycloak is ready, False otherwise.
         """
         try:
-            response = requests.get(f"{KEYCLOAK_SERVER_URL}/health/ready")
-            return response.status_code == 200 and response.json()["status"] == "UP"
-        except requests.exceptions.ConnectionError:
+            response = requests.post(
+                f"{KEYCLOAK_SERVER_URL}/realms/master/protocol/openid-connect/token",
+                data={
+                    "username": "admin",
+                    "password": "admin",
+                    "grant_type": "password",
+                    "client_id": "admin-cli",
+                },
+            )
+            return "access_token" in response.json()
+        except (requests.exceptions.ConnectionError, ValueError):
             return False
 
 
