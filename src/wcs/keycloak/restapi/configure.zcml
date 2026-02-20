@@ -1,0 +1,39 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:plone="http://namespaces.plone.org/plone"
+    i18n_domain="wcs.keycloak"
+    >
+
+  <include
+      package="plone.restapi"
+      file="meta.zcml"
+      />
+
+  <plone:service
+      method="POST"
+      factory=".sync_keycloak.SyncKeycloakService"
+      for="plone.base.interfaces.IPloneSiteRoot"
+      permission="cmf.ManagePortal"
+      layer="wcs.keycloak.interfaces.IKeycloakLayer"
+      name="@sync-keycloak"
+      />
+
+  <plone:service
+      method="POST"
+      factory=".sync_keycloak_groups.SyncKeycloakGroupsService"
+      for="plone.base.interfaces.IPloneSiteRoot"
+      permission="cmf.ManagePortal"
+      layer="wcs.keycloak.interfaces.IKeycloakLayer"
+      name="@sync-keycloak-groups"
+      />
+
+  <plone:service
+      method="POST"
+      factory=".sync_keycloak_users.SyncKeycloakUsersService"
+      for="plone.base.interfaces.IPloneSiteRoot"
+      permission="cmf.ManagePortal"
+      layer="wcs.keycloak.interfaces.IKeycloakLayer"
+      name="@sync-keycloak-users"
+      />
+
+</configure>

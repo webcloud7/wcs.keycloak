@@ -22,6 +22,7 @@
       />
 
   <include package=".browser" />
+  <include package=".restapi" />
 
   <subscriber
       for="Products.PluggableAuthService.interfaces.events.IUserLoggedInEvent"
