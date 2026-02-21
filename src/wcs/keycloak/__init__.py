@@ -1,6 +1,6 @@
 """Keycloak integration for Plone 6."""
 
-__version__ = "1.0.0a2.dev0"
+__version__ = "1.0.0a2"
 
 from AccessControl.Permissions import manage_users
 from Products.PluggableAuthService.PluggableAuthService import registerMultiPlugin

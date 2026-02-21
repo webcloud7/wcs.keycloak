@@ -9,6 +9,13 @@
 
 <!-- towncrier release notes start -->
 
+## 1.0.0a2 (2026-02-20)
+
+
+### New features:
+
+- Add plone.restapi sync endpoints (@sync-keycloak, @sync-keycloak-groups, @sync-keycloak-users). 
+
 ## 1.0.0a1 (2026-02-19)
 
 
