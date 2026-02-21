@@ -27,6 +27,7 @@ classifiers = [
 ]
 dependencies = [
     "Plone",
+    "plone.restapi",
     "requests",
 ]
 
@@ -35,7 +36,6 @@ test = [
     "beautifulsoup4",
     "Paste",
     "plone.app.testing",
-    "plone.restapi",
     "plone.testing",
     "requests",
     "zope.testrunner",
