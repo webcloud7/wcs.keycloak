@@ -1,0 +1,1 @@
+Key Keycloak-synced Plone groups on the stable Keycloak group UUID (``keycloak_<uuid>``) instead of the group name. Renaming a group in Keycloak now preserves the Plone group's identity, sharing and local-role assignments. Existing name-keyed synced groups are recreated on the next sync.
