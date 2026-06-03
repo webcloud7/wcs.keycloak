@@ -29,28 +29,30 @@ def is_group_sync_enabled():
     return is_sync_enabled("sync_groups")
 
 
-def get_plone_group_id(keycloak_group_name):
-    """Convert a Keycloak group name to a Plone group ID.
+def get_plone_group_id(keycloak_group_uuid):
+    """Convert a Keycloak group UUID to a Plone group ID.
 
-    Adds a prefix to distinguish Keycloak-synced groups from native Plone groups.
+    The UUID is stable across renames, so the Plone group keeps its identity
+    (and any sharing / local-role assignments) when the group is renamed in
+    Keycloak. Adds a prefix to distinguish synced groups from native ones.
 
     Args:
-        keycloak_group_name: The group name from Keycloak.
+        keycloak_group_uuid: The stable group UUID from Keycloak.
 
     Returns:
         The corresponding Plone group ID.
     """
-    return f"{KEYCLOAK_GROUP_PREFIX}{keycloak_group_name}"
+    return f"{KEYCLOAK_GROUP_PREFIX}{keycloak_group_uuid}"
 
 
-def get_keycloak_group_name(plone_group_id):
-    """Extract the Keycloak group name from a Plone group ID.
+def get_keycloak_group_uuid(plone_group_id):
+    """Extract the Keycloak group UUID from a Plone group ID.
 
     Args:
         plone_group_id: The Plone group ID.
 
     Returns:
-        The Keycloak group name if this is a synced group, None otherwise.
+        The Keycloak group UUID if this is a synced group, None otherwise.
     """
     if plone_group_id.startswith(KEYCLOAK_GROUP_PREFIX):
         return plone_group_id[len(KEYCLOAK_GROUP_PREFIX) :]
@@ -87,9 +89,8 @@ def sync_all_groups():
     try:
         # Fetch all groups from Keycloak
         keycloak_groups = client.search_groups(max_results=MAX_SYNC_GROUPS)
-        keycloak_group_names = {g["name"] for g in keycloak_groups if g.get("name")}
 
-        logger.info(f"Found {len(keycloak_group_names)} groups in Keycloak")
+        logger.info(f"Found {len(keycloak_groups)} groups in Keycloak")
 
         # Get all existing synced Plone groups
         portal_groups = api.portal.get_tool("portal_groups")
@@ -101,10 +102,11 @@ def sync_all_groups():
         # Create or update groups from Keycloak
         for kc_group in keycloak_groups:
             group_name = kc_group.get("name")
-            if not group_name:
+            group_uuid = kc_group.get("id")
+            if not group_name or not group_uuid:
                 continue
 
-            plone_group_id = get_plone_group_id(group_name)
+            plone_group_id = get_plone_group_id(group_uuid)
 
             try:
                 existing_group = api.group.get(groupname=plone_group_id)
@@ -130,7 +132,9 @@ def sync_all_groups():
                 stats["errors"] += 1
 
         # Remove groups that no longer exist in Keycloak
-        expected_plone_ids = {get_plone_group_id(name) for name in keycloak_group_names}
+        expected_plone_ids = {
+            get_plone_group_id(g["id"]) for g in keycloak_groups if g.get("id")
+        }
         groups_to_delete = synced_plone_groups - expected_plone_ids
 
         for group_id in groups_to_delete:
@@ -180,7 +184,7 @@ def sync_all_memberships():
             if not group_name or not group_uuid:
                 continue
 
-            plone_group_id = get_plone_group_id(group_name)
+            plone_group_id = get_plone_group_id(group_uuid)
             plone_group = api.group.get(groupname=plone_group_id)
 
             if not plone_group:
@@ -265,8 +269,9 @@ def sync_user_memberships(username):
 
         # Get groups the user belongs to in Keycloak
         kc_groups = client.get_groups_for_user(user_id)
-        kc_group_names = {g.get("name") for g in kc_groups if g.get("name")}
-        expected_plone_groups = {get_plone_group_id(name) for name in kc_group_names}
+        expected_plone_groups = {
+            get_plone_group_id(g["id"]) for g in kc_groups if g.get("id")
+        }
 
         # Get current Plone group memberships (only synced groups)
         portal_groups = api.portal.get_tool("portal_groups")
